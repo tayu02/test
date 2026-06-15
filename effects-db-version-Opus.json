@@ -1,0 +1,4346 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "デジモンカード効果DB（事前コンパイル済み効果データ）。エントリがあるカードはテキスト解析を使わずこのデータで確定動作する。書式は『効果データ方式移行指示書.md』参照。P1で「基本ベルゼ」デッキ（ST-14基軸）を収録。",
+    "updated": "2026-06-14",
+    "_p2_note": "P2でOpusが原文照合し確定したカードを追加（_verified:true）。条件付き25枚を手動補完して確定（Lv.7条件4枚は表現不可のため差し戻し）。",
+    "_provenance": "このファイルは Fable5（15枚・_memoなし）＋ Opus（42枚・_memoに(Opus)）の混在。ファイル名のversion-Opusは『Opusが改変した作業版』の意味で、全エントリがOpus作という意味ではない。元のFable5版は別途 effects-db.json（無印）。",
+    "_p2_audit": "P2(Opus): 既存ドラフト23枚を原文照合監査。忠実かつ完全な2 base（P-190登場時draw1 / BT9-070進化時mill3）を昇格。残21は条件取りこぼし/遅延の即時化/条件誤付着/ブロック欠落のため意図的に保留（draft据置）。詳細は draft-audit-version-Opus.md。parallel(-P1等)はエンジンがbase idへフォールバックするため base のみ登録。",
+    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。"
+  },
+  "ST14-02": {
+    "_name": "インプモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "trash",
+            "op": ">=",
+            "value": 20
+          }
+        },
+        "actions": [
+          {
+            "op": "evolve",
+            "base": "self",
+            "target": {
+              "nameIs": "ベルゼブモン",
+              "from": [
+                "trash"
+              ]
+            },
+            "cost": 3,
+            "ignoreCondition": true,
+            "optional": true
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "when_my_deck_trashed",
+        "turn": "my",
+        "limit": "once_per_turn",
+        "_note": "発火イベント未配線（P1で自分デッキ破棄処理に接続予定）",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 3
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-11": {
+    "_name": "アイ＆マコト",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 4
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "featureAny": [
+                  "小悪魔型",
+                  "魔人型",
+                  "魔王型"
+                ]
+              },
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": {
+          "event": "when_my_digimon_evolved",
+          "filter": {
+            "colorAny": [
+              "紫"
+            ]
+          }
+        },
+        "turn": "my",
+        "cost": [
+          {
+            "op": "rest_self"
+          }
+        ],
+        "actions": [
+          {
+            "op": "move",
+            "from": "hand",
+            "to": "deck_top",
+            "count": 1
+          },
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "kind": "triggered",
+        "trigger": "security",
+        "actions": [
+          {
+            "op": "play_self"
+          }
+        ]
+      }
+    ]
+  },
+  "ST5-14": {
+    "_name": "八神太一",
+    "_verified": true,
+    "_note": "非ターン側（ブロック側）の誘発のため自動実行不可。ブロック発生時に手動確認ログを表示する（エンジン側B16対応）。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "when_my_blocker_used",
+        "turn": "opp",
+        "cost": [
+          {
+            "op": "rest_self"
+          }
+        ],
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "rested": true,
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "kind": "triggered",
+        "trigger": "security",
+        "actions": [
+          {
+            "op": "play_self"
+          }
+        ]
+      }
+    ]
+  },
+  "EX5-062": {
+    "_name": "アヌビモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": [
+          "on_evolve",
+          "main"
+        ],
+        "limit": "once_per_turn",
+        "actions": [
+          {
+            "op": "discard_hand",
+            "count": 3,
+            "upTo": true,
+            "saveCountAs": "X"
+          },
+          {
+            "op": "play",
+            "from": "trash",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "紫"
+                ]
+              },
+              "count": 1
+            },
+            "costMod": {
+              "discount": 3,
+              "discountAdjustPerVar": {
+                "var": "X",
+                "delta": -1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": {
+          "event": "when_my_digimon_played",
+          "byEffect": true
+        },
+        "turn": "my",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvMax": 5
+              },
+              "count": 1
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT25-082": {
+    "_name": "ブラックテイルモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": [
+          "on_play",
+          "on_evolve"
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": "<=",
+            "value": 1
+          }
+        },
+        "actions": [
+          {
+            "op": "play",
+            "from": "hand",
+            "selector": {
+              "type": "テイマー",
+              "filter": {
+                "textContains": [
+                  "三銃士"
+                ]
+              },
+              "count": 1
+            },
+            "costMod": "free",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "kind": "static",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "textContains": [
+                "三銃士"
+              ]
+            }
+          }
+        },
+        "grant": {
+          "op": "evo_route",
+          "base": "self",
+          "target": {
+            "filter": {
+              "type": "デジモン",
+              "featureAll": [
+                "三銃士"
+              ]
+            }
+          },
+          "cost": 4,
+          "ignoreEvoCondition": true
+        }
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "cost": [
+          {
+            "op": "move",
+            "from": [
+              "hand",
+              "trash"
+            ],
+            "to": "source_bottom",
+            "filter": {
+              "featureAll": [
+                "三銃士"
+              ]
+            },
+            "count": 1
+          }
+        ],
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-01": {
+    "_name": "ヤーモン",
+    "_verified": true,
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureAny": [
+              "魔人型",
+              "魔王型"
+            ]
+          }
+        },
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-03": {
+    "_name": "キャンドモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "trash",
+            "op": ">=",
+            "value": 10
+          }
+        },
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-04": {
+    "_name": "ファスコモン",
+    "_verified": true,
+    "_note": "ブロッカーはカードデータ側で検出済み。アタック制限はルール系（既存エンジンの制限処理が担当）。",
+    "effects": [
+      {
+        "kind": "rule",
+        "text": "自分のターンこのデジモンはプレイヤーにアタックできない"
+      }
+    ]
+  },
+  "ST14-05": {
+    "_name": "ポキュパモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-06": {
+    "_name": "ウィッチモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "static",
+        "condition": {
+          "and": [
+            {
+              "isMyTurn": true
+            },
+            {
+              "self": {
+                "featureAny": [
+                  "魔人型",
+                  "魔王型"
+                ]
+              }
+            }
+          ]
+        },
+        "grant": {
+          "op": "dp_mod",
+          "target": "self",
+          "value": 2000
+        }
+      }
+    ]
+  },
+  "ST14-07": {
+    "_name": "バアルモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "grant_effect",
+            "until": "next_opp_turn_end",
+            "block": {
+              "kind": "triggered",
+              "trigger": "on_destroy",
+              "condition": {
+                "zoneCount": {
+                  "side": "my",
+                  "zone": "trash",
+                  "op": ">=",
+                  "value": 10
+                }
+              },
+              "actions": [
+                {
+                  "op": "play",
+                  "from": "trash",
+                  "selector": {
+                    "type": "デジモン",
+                    "filter": {
+                      "nameIs": "ベルゼブモン"
+                    },
+                    "count": 1
+                  },
+                  "costMod": "free",
+                  "optional": true
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "static",
+        "condition": {
+          "and": [
+            {
+              "isMyTurn": true
+            },
+            {
+              "self": {
+                "featureAny": [
+                  "魔人型",
+                  "魔王型"
+                ]
+              }
+            }
+          ]
+        },
+        "grant": {
+          "op": "dp_mod",
+          "target": "self",
+          "value": 2000
+        }
+      }
+    ]
+  },
+  "ST14-08": {
+    "_name": "ベルゼブモン",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "when_my_deck_trashed",
+        "limit": "once_per_turn",
+        "_note": "お互いのターンターン1回（自エンジンはターン側のみ発火）",
+        "actions": [
+          {
+            "op": "repeat",
+            "per": {
+              "side": "my",
+              "zone": "trash",
+              "unit": 10
+            },
+            "ops": [
+              {
+                "op": "memory",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "when_my_deck_trashed",
+        "turn": "my",
+        "limit": "once_per_turn",
+        "actions": [
+          {
+            "op": "satk_mod",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-09": {
+    "_name": "ベルスターモン",
+    "_verified": true,
+    "playCostMod": {
+      "perZone": {
+        "zone": "trash",
+        "unit": 10,
+        "value": -4
+      }
+    },
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "when_my_deck_trashed",
+        "limit": "once_per_turn",
+        "_note": "お互いのターンターン1回（自エンジンはターン側のみ発火）",
+        "actions": [
+          {
+            "op": "play",
+            "from": "trash",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameIs": "インプモン"
+              },
+              "count": 1
+            },
+            "costMod": "free",
+            "optional": true,
+            "grantKeywords": [
+              "速攻"
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "rule",
+        "text": "相手のターン相手のデジモンがアタックしたとき、自分のデッキの上から1枚破棄する（非ターン側誘発のため手動運用）"
+      }
+    ]
+  },
+  "ST14-10": {
+    "_name": "ベルゼブモン：ブラストモード",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_trashed_from_deck",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "lvMaxDynamic": {
+              "base": 3,
+              "perZone": {
+                "zone": "trash",
+                "unit": 10
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "activate_self"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "zoneCount": {
+                "side": "my",
+                "zone": "trash",
+                "op": ">=",
+                "value": 20
+              }
+            },
+            "then": [
+              {
+                "op": "memory",
+                "value": 3
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ST14-12": {
+    "_name": "犬猿の凶弾",
+    "_verified": true,
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_trashed_from_deck",
+        "actions": [
+          {
+            "op": "place_self_battle",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "main",
+        "actions": [
+          {
+            "op": "destroy",
+            "special": "highest_lv",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "main",
+        "actions": [
+          {
+            "op": "delay",
+            "text": "自分のトラッシュから、紫のデジモンカード/テイマーカード1枚を手札に戻す。"
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "kind": "triggered",
+        "trigger": "security",
+        "actions": [
+          {
+            "op": "destroy",
+            "special": "highest_lv",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-13": {
+    "_name": "ハンマースパーク",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST6-01": {
+    "_name": "パグモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST16-01": {
+    "_name": "ツノモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": "<=",
+            "value": 6
+          }
+        }
+      }
+    ]
+  },
+  "ST16-07": {
+    "_name": "メラモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-029": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-030": {
+    "_name": "ゴマモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-035": {
+    "_name": "レオモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-097": {
+    "_name": "ボーリンストーム",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-007": {
+    "_name": "パグモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-034": {
+    "_name": "プロットモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT2-068": {
+    "_name": "インプモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-070": {
+    "_name": "バクモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-003": {
+    "_name": "ウパモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT3-079": {
+    "_name": "ツカイモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-081": {
+    "_name": "デビドラモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-057": {
+    "_name": "グラップレオモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-043": {
+    "_name": "ジジモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-025": {
+    "_name": "パンジャモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn"
+      }
+    ]
+  },
+  "BT6-055": {
+    "_name": "ジャンクモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-069": {
+    "_name": "ガジモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-015": {
+    "_name": "インフェルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-017": {
+    "_name": "ピコデビモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "P-041": {
+    "_name": "ギルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-13-P1": {
+    "_name": "ハンマースパーク",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-13-P2": {
+    "_name": "ハンマースパーク",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST6-01-P1": {
+    "_name": "パグモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-029-P1": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-029-P2": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-029-P3": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-029-P4": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-035-P1": {
+    "_name": "レオモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-034-P1": {
+    "_name": "プロットモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT2-034-P2": {
+    "_name": "プロットモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT2-068-P1": {
+    "_name": "インプモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-068-P2": {
+    "_name": "インプモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-070-P1": {
+    "_name": "バクモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-070-P2": {
+    "_name": "バクモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-003-P1": {
+    "_name": "ウパモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "P-017-P1": {
+    "_name": "ピコデビモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "P-041-P1": {
+    "_name": "ギルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-041-P2": {
+    "_name": "ギルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-041-P3": {
+    "_name": "ギルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合済",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-046": {
+    "_name": "クダモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": "<=",
+            "value": 4
+          }
+        }
+      }
+    ]
+  },
+  "BT6-035": {
+    "_name": "バルキモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT6-036": {
+    "_name": "ミミックモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "EX1-025": {
+    "_name": "プロットモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "EX1-025-P1": {
+    "_name": "プロットモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "P-005": {
+    "_name": "パタモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 1
+          }
+        }
+      }
+    ]
+  },
+  "P-005-P1": {
+    "_name": "パタモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 1
+          }
+        }
+      }
+    ]
+  },
+  "ST3-05": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 4
+          }
+        }
+      }
+    ]
+  },
+  "ST3-05-P1": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 4
+          }
+        }
+      }
+    ]
+  },
+  "ST3-05-P2": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 4
+          }
+        }
+      }
+    ]
+  },
+  "ST3-09": {
+    "_name": "エンジェウーモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "ST3-09-P1": {
+    "_name": "エンジェウーモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT6-003": {
+    "_name": "ビビモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "==",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "BT6-003-P1": {
+    "_name": "ビビモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "==",
+            "value": 3
+          }
+        }
+      }
+    ]
+  },
+  "EX1-017": {
+    "_name": "ワーガルルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": ">=",
+            "value": 8
+          }
+        }
+      }
+    ]
+  },
+  "EX1-017-P1": {
+    "_name": "ワーガルルモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": ">=",
+            "value": 8
+          }
+        }
+      }
+    ]
+  },
+  "BT2-010": {
+    "_name": "ピヨモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "isMyTurn": true
+        }
+      }
+    ]
+  },
+  "BT2-010-P1": {
+    "_name": "ピヨモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "isMyTurn": true
+        }
+      }
+    ]
+  },
+  "BT5-005": {
+    "_name": "ツメモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureAny": [
+              "種族不明"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "BT6-022": {
+    "_name": "ストラビモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureAny": [
+              "ハイブリッド体",
+              "十闘士"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "BT10-003": {
+    "_name": "ピックモンズ",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "self": {
+            "featureAny": [
+              "クロスハート"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "BT10-003-P1": {
+    "_name": "ピックモンズ",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "self": {
+            "featureAny": [
+              "クロスハート"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "BT10-003-P2": {
+    "_name": "ピックモンズ",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "self": {
+            "featureAny": [
+              "クロスハート"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "ST14-01-P1": {
+    "_name": "ヤーモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 2
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureAny": [
+              "魔人型",
+              "魔王型"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "BT10-002": {
+    "_name": "ベビドモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件を手動補完",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 2
+          }
+        }
+      }
+    ]
+  },
+  "BT2-033": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": ">=",
+            "value": 3,
+            "filter": {
+              "colorAny": [
+                "黄"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "BT2-033-P1": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": ">=",
+            "value": 3,
+            "filter": {
+              "colorAny": [
+                "黄"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "BT11-001": {
+    "_name": "ピョコモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": ">=",
+            "value": 1,
+            "filter": {
+              "colorAny": [
+                "赤"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "P-054": {
+    "_name": "セラフィモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": ">=",
+            "value": 1
+          }
+        }
+      },
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "EX3-006": {
+    "_name": "フレアリザモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureContains": "竜"
+          }
+        }
+      }
+    ]
+  },
+  "EX3-009": {
+    "_name": "ヴォルクドラモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "self": {
+            "featureContains": "竜"
+          }
+        }
+      }
+    ]
+  },
+  "BT1-076": {
+    "_name": "アトラーカブテリモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 2,
+            "rested": true
+          }
+        }
+      }
+    ]
+  },
+  "BT1-076-P1": {
+    "_name": "アトラーカブテリモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 2,
+            "rested": true
+          }
+        }
+      }
+    ]
+  },
+  "BT1-076-P2": {
+    "_name": "アトラーカブテリモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 2,
+            "rested": true
+          }
+        }
+      }
+    ]
+  },
+  "BT6-045": {
+    "_name": "バコモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 2,
+            "rested": true
+          }
+        }
+      }
+    ]
+  },
+  "BT1-041": {
+    "_name": "ズドモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "condition": {
+          "unitCount": {
+            "side": "opp",
+            "type": "デジモン",
+            "op": ">=",
+            "value": 1,
+            "noSource": true
+          }
+        }
+      }
+    ]
+  },
+  "BT6-008": {
+    "_name": "シャウトモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "selfKeyword": "進撃"
+        }
+      }
+    ]
+  },
+  "EX2-013": {
+    "_name": "ラブラモン",
+    "_verified": true,
+    "_memo": "P2 verified (Opus) ※原文照合・条件手動補完+専用機能追加",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ],
+        "limit": "once_per_turn",
+        "condition": {
+          "selfKeyword": "ジャミング"
+        }
+      }
+    ]
+  },
+  "P-190": {
+    "_name": "ツブモン",
+    "_verified": true,
+    "_memo": "P2 draft audited→verified (Opus) ※原文照合済。先頭の特殊進化は進化ルートで効果対象外。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT9-070": {
+    "_name": "ガジモンX抗体",
+    "_verified": true,
+    "_memo": "P2 draft audited→verified (Opus) ※原文照合済。先頭の特殊進化は進化ルートで効果対象外。",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "mill",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-072": {
+    "_name": "ウッドモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-054": {
+    "_name": "ゴツモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-072": {
+    "_name": "イビルモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-042": {
+    "_name": "ピッドモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-067": {
+    "_name": "シールズドラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-012": {
+    "_name": "モノクロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-026": {
+    "_name": "シーラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT9-061": {
+    "_name": "モノクロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -3
+          }
+        ]
+      }
+    ]
+  },
+  "P-014": {
+    "_name": "クリサリモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST1-06": {
+    "_name": "コアドラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-07": {
+    "_name": "グリズモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST3-07": {
+    "_name": "ユニモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST4-08": {
+    "_name": "カブテリモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST5-08": {
+    "_name": "ダークティラノモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "ST6-08": {
+    "_name": "デビモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワード「ブロッカー」はcard.keywords[]で独立保持されるためDB側はトリガ効果のみ記載。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -2
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-018": {
+    "_name": "ブリッツグレイモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワードはcard.keywords[]で独立保持。devolveは対象1体・count=退化レベル数（実装17770確認）。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-054": {
+    "_name": "ボルトモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。静的キーワードはcard.keywords[]で独立保持。devolveは対象1体・count=退化レベル数（実装17770確認）。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST10-11": {
+    "_name": "バステモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。Lv.3完全一致=filter.lvIs:3。destroyはcount:1で1体（複数候補はpicker・0体は不発）。on_play/on_destroyは発火経路確認済(triggerEffect/直接dispatch)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 3
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "P-018": {
+    "_name": "デビモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。Lv.3完全一致=filter.lvIs:3。destroyはcount:1で1体（複数候補はpicker・0体は不発）。on_play/on_destroyは発火経路確認済(triggerEffect/直接dispatch)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 3
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-070": {
+    "_name": "エレキモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。Lv.3完全一致=filter.lvIs:3。destroyはcount:1で1体（複数候補はpicker・0体は不発）。on_play/on_destroyは発火経路確認済(triggerEffect/直接dispatch)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 3
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-010": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。select_from_revealedはupTo:true（既存確定と同規約／「1枚を手札に加える」を対象あれば選択・無ければ加えないで表現）。on_play発火経路確認済。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 5
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "テイマー",
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-067": {
+    "_name": "パルモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。select_from_revealedはupTo:true（既存確定と同規約／「1枚を手札に加える」を対象あれば選択・無ければ加えないで表現）。on_play発火経路確認済。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 4
+              },
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-084": {
+    "_name": "レアモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。select_from_revealedはupTo:true（既存確定と同規約／「1枚を手札に加える」を対象あれば選択・無ければ加えないで表現）。on_play発火経路確認済。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "オプション",
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "trash"
+          }
+        ]
+      }
+    ]
+  },
+  "P-042": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。select_from_revealedはupTo:true（既存確定と同規約／「1枚を手札に加える」を対象あれば選択・無ければ加えないで表現）。on_play発火経路確認済。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 5
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "テイマー",
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST1-16": {
+    "_name": "ガイアフォース",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、securityはtriggerEffect('セキュリティ効果')→security。「メイン効果を発揮する」はsecurityにmainと同一actionsを複製（発火文脈が別＝二重発火なし）。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-16": {
+    "_name": "コキュートスブレス",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、securityはtriggerEffect('セキュリティ効果')→security。「メイン効果を発揮する」はsecurityにmainと同一actionsを複製（発火文脈が別＝二重発火なし）。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "bounce",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "to": "hand"
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "bounce",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "to": "hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-107": {
+    "_name": "改心の波動",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、securityはtriggerEffect('セキュリティ効果')→security。「メイン効果を発揮する」はsecurityにmainと同一actionsを複製（発火文脈が別＝二重発火なし）。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-105": {
+    "_name": "ヘルズグレネード",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、securityはtriggerEffect('セキュリティ効果')→security。「メイン効果を発揮する」はsecurityにmainと同一actionsを複製（発火文脈が別＝二重発火なし）。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-106": {
+    "_name": "∞キャノン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、securityはtriggerEffect('セキュリティ効果')→security。「メイン効果を発揮する」はsecurityにmainと同一actionsを複製（発火文脈が別＝二重発火なし）。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 4
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  },
+  "ST5-16": {
+    "_name": "ジェノサイドアタック",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: edbCardMatchesFilter対応(costMax/lvMax)。destroy/rest=相手1体・複数候補picker・0体不発。 オプションsecurity「発揮」=mainと同一actions複製。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "costMax": 7
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "costMax": 7
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST16-16": {
+    "_name": "ボールディブロー",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: edbCardMatchesFilter対応(costMax/lvMax)。destroy/rest=相手1体・複数候補picker・0体不発。 オプションsecurity「発揮」=mainと同一actions複製。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "lvMax": 5
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "lvMax": 5
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST15-09": {
+    "_name": "ナイトモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: edbCardMatchesFilter対応(costMax/lvMax)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "costMax": 5
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-070": {
+    "_name": "クワガーモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: edbCardMatchesFilter対応(costMax/lvMax)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST7-07": {
+    "_name": "ライズグレイモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 5000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST18-03": {
+    "_name": "ファルコモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-091": {
+    "_name": "ヴォルケニック・フレア",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。 オプションsecurity「発揮」=mainと同一actions複製。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 4000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 4000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-110": {
+    "_name": "トランプ・ソード",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。 オプションsecurity「発揮」=mainと同一actions複製。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "rested": false
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "rested": false
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-017": {
+    "_name": "ヴァルキリモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 4000
+              }
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 4000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-098": {
+    "_name": "プラズマステーク",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。 オプションsecurity「発揮」=mainと同一actions複製。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMin": 13000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMin": 13000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-055": {
+    "_name": "レオモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT18-008": {
+    "_name": "ゴブリモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-034": {
+    "_name": "パルモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 5000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "P-001": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。filter: dpMax/dpMin/lvMax等(edbSelectCandidates)・rested(アクティブ/レスト)。destroy/rest=相手1体・複数候補picker・0体不発。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST4-10": {
+    "_name": "リリモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。filter: lvMin/nameContains/featureAny等。select_from_revealedはupTo:true（ST14-11規約）。",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 5
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "zone": "revealed",
+              "count": 1,
+              "upTo": true,
+              "type": "デジモン",
+              "filter": {
+                "lvMin": 6
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST8-03": {
+    "_name": "ドラコモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。filter: lvMin/nameContains/featureAny等。select_from_revealedはupTo:true（ST14-11規約）。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "zone": "revealed",
+              "count": 1,
+              "upTo": true,
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "ドラモン"
+                ]
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST10-08": {
+    "_name": "ツカイモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。filter: lvMin/nameContains/featureAny等。select_from_revealedはupTo:true（ST14-11規約）。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "zone": "revealed",
+              "count": 1,
+              "upTo": true,
+              "filter": {
+                "featureAny": [
+                  "天使型",
+                  "大天使型",
+                  "堕天使型"
+                ]
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-074": {
+    "_name": "トゲモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。filter: lvMin/nameContains/featureAny等。select_from_revealedはupTo:true（ST14-11規約）。",
+    "effects": [
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "zone": "revealed",
+              "count": 1,
+              "upTo": true,
+              "type": "デジモン",
+              "filter": {
+                "lvMin": 5
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-024": {
+    "_name": "パタモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本=ST14-11。filter: lvMin/nameContains/featureAny等。select_from_revealedはupTo:true（ST14-11規約）。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 4
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "zone": "revealed",
+              "count": 1,
+              "upTo": true,
+              "type": "デジモン",
+              "filter": {
+                "featureAny": [
+                  "天使型",
+                  "大天使型",
+                  "三大天使"
+                ]
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-011": {
+    "_name": "アグモン博士",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "move",
+            "from": "trash",
+            "to": "hand",
+            "side": "my",
+            "count": 1,
+            "type": "デジモン",
+            "filter": {
+              "nameContains": [
+                "アグモン"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-066": {
+    "_name": "テントモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-013": {
+    "_name": "グラウモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-001": {
+    "_name": "ポロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 1000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-012": {
+    "_name": "アクィラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-051": {
+    "_name": "トロピアモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 5000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT8-011": {
+    "_name": "サイクロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT13-001": {
+    "_name": "ピナモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "EX3-059": {
+    "_name": "ダークティラノモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-058": {
+    "_name": "デビモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "move",
+            "from": "trash",
+            "to": "hand",
+            "side": "my",
+            "count": 1,
+            "type": "デジモン",
+            "filter": {
+              "colorAny": [
+                "紫"
+              ],
+              "lvMax": 4
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT13-011": {
+    "_name": "アクィラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "on_evolve",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-065": {
+    "_name": "ガンマモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect→effects / 進化元効果(evolved)→inherited（進化元dispatch 9804/10267）。filter: dpMax/colorAny/lvMax/nameContains。destroy/rest=相手1体・picker・0体不発。move=トラッシュ→手札のfilter選択。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "trigger": "on_attack",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 2000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-063": {
+    "_name": "スカモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal→play(from:revealed,costMod:free,upTo=「登場できる」任意)。play後はedbRemoveCardItemでrevealedから除去→dispose_revealedと二重処理なし(edbZone/revealed確認済)。",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "play",
+            "from": "revealed",
+            "selector": {
+              "filter": {
+                "nameIs": "チューモン"
+              },
+              "count": 1
+            },
+            "costMod": "free"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-063": {
+    "_name": "コマンドラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal→play(from:revealed,costMod:free,upTo=「登場できる」任意)。play後はedbRemoveCardItemでrevealedから除去→dispose_revealedと二重処理なし(edbZone/revealed確認済)。",
+    "effects": [
+      {
+        "trigger": "on_destroy",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "play",
+            "from": "revealed",
+            "selector": {
+              "filter": {
+                "nameIs": "コマンドラモン"
+              },
+              "count": 1
+            },
+            "costMod": "free"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST9-02": {
+    "_name": "ブイモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。reveal手本ST14-11。featureContainsフィルタ。upTo:true。",
+    "effects": [
+      {
+        "trigger": "on_play",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "count": 1,
+              "upTo": true,
+              "filter": {
+                "featureAny": [
+                  "フリー"
+                ]
+              }
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  }
+}
