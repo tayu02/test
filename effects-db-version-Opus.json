@@ -2,11 +2,11 @@
   "_meta": {
     "version": 1,
     "description": "デジモンカード効果DB（事前コンパイル済み効果データ）。エントリがあるカードはテキスト解析を使わずこのデータで確定動作する。書式は『効果データ方式移行指示書.md』参照。P1で「基本ベルゼ」デッキ（ST-14基軸）を収録。",
-    "updated": "2026-06-14",
+    "updated": "2026-06-15",
     "_p2_note": "P2でOpusが原文照合し確定したカードを追加（_verified:true）。条件付き25枚を手動補完して確定（Lv.7条件4枚は表現不可のため差し戻し）。",
     "_provenance": "このファイルは Fable5（15枚・_memoなし）＋ Opus（42枚・_memoに(Opus)）の混在。ファイル名のversion-Opusは『Opusが改変した作業版』の意味で、全エントリがOpus作という意味ではない。元のFable5版は別途 effects-db.json（無印）。",
     "_p2_audit": "P2(Opus): 既存ドラフト23枚を原文照合監査。忠実かつ完全な2 base（P-190登場時draw1 / BT9-070進化時mill3）を昇格。残21は条件取りこぼし/遅延の即時化/条件誤付着/ブロック欠落のため意図的に保留（draft据置）。詳細は draft-audit-version-Opus.md。parallel(-P1等)はエンジンがbase idへフォールバックするため base のみ登録。",
-    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。"
+    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。"
   },
   "ST14-02": {
     "_name": "インプモン",
@@ -4338,6 +4338,92 @@
           {
             "op": "dispose_revealed",
             "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST15-10": {
+    "_name": "アンドロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「進化時相手のデジモン1体を退化1。」。on_evolve devolve count:1（対象1体・count=退化レベル数/実装17770）。進化元効果「再起動」は静的キーワードだが現エンジン非機能のためinheritedにkind:'rule'で記録のみ→挙動不変。非機能理由:(a)extractKeywordsは末尾キーワードを取りこぼす(REF_NEXT.includes('')が常にtrue)、(b)hasKeywordがstack源を走査しない。将来B1で継承キーワード実装時に有効化可。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "rule",
+        "text": "再起動（進化元効果／静的キーワード。現エンジン未実装＝非発火。card.keywords非搭載のため記録のみ。B1実装対象）"
+      }
+    ]
+  },
+  "EX8-049": {
+    "_name": "ゴーレモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時消滅時相手のデジモン1体を退化1。」。登場時消滅時=trigger:[on_play,on_destroy]（edbTriggerMatchesが配列対応・既存例EX5-062/BT25-082）。devolve count:1。進化元「ブロッカー」は末尾キーワードでextractKeywords取りこぼし+hasKeyword源未走査により現エンジン非機能→inheritedにkind:'rule'記録のみ(挙動不変・B1実装対象)。parallel EX8-049-P1はbaseへフォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": [
+          "on_play",
+          "on_destroy"
+        ],
+        "actions": [
+          {
+            "op": "devolve",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "rule",
+        "text": "ブロッカー（進化元効果／静的キーワード。現エンジン未実装＝非発火。記録のみ。B1実装対象）"
+      }
+    ]
+  },
+  "P-080": {
+    "_name": "ラブラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時紫の自分のテイマーがいるとき、Lv.3の相手のデジモン1体を消滅させる。」。条件「紫の自分のテイマーがいるとき」=condition.exists(side:my,zone:battle,type:テイマー,colorAny:[紫])。実環境で在→true/無→false/赤のみ→false を確認。本体「Lv.3の相手1体消滅」=destroy(opp,デジモン,lvIs:3,count:1)=ST10-11/P-018同型（複数候補はpicker・0体は不発）。進化元・セキュリティ無し。parallel P-080-P1はbaseへフォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "colorAny": [
+                "紫"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 3
+              },
+              "count": 1
+            }
           }
         ]
       }
