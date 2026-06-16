@@ -5442,7 +5442,14 @@ function checkTurnEnd() {
   if (G.memory>0 && G.isMyTurn && !G.gameOver) {
     // モーダルが開いている場合は保留フラグを立てる
     const modalOpen = document.getElementById("modal-overlay")?.classList.contains("open");
-    if (modalOpen) {
+    // 効果キューに未処理効果が残っている / 実行中 / EDBブロック処理中 / 同時誘発の順番待ちが残っている
+    // ときもターン終了を保留する。
+    // （同時誘発で片方の効果を選んで処理し、その効果でメモリーが相手に渡ると、
+    //   残りの効果が処理される前にターン終了してしまい、もう片方の効果が落ちる不具合の対策。
+    //   processEffectQueue / closeModal 側はキューが空になった時点で保留中のターン終了を実行する。）
+    const queueBusy = (G.effectQueue && G.effectQueue.length > 0) || G.effectQueueRunning || G._edbBusy
+                    || (G._simultaneousEffects && G._simultaneousEffects.length > 0);
+    if (modalOpen || queueBusy) {
       G.pendingTurnEnd = true;
       log(`メモリーが相手側（${G.memory}）に渡りました。効果処理完了後にターン終了します。`, "important");
     } else {
@@ -6671,6 +6678,12 @@ function triggerEffect(inst, trigger, battleArea, trash) {
   const _edbEv = EDB_TRIGGER_JP[newTrigger] || EDB_TRIGGER_JP[trigger] || trigger;
   if (_fx) {
     edbEnqueueTriggered(inst, _fx, _edbEv);
+    // セキュリティ効果は fx.security[] に格納されるため、security イベント時は別途ディスパッチする。
+    // （edbEnqueueTriggered は fx.effects しか見ないため、これが無いと fx.security が永久に発火しない＝
+    //   全EDBオプションのセキュリティ効果が無効化されていた。）
+    if (_edbEv === 'security' && Array.isArray(_fx.security) && _fx.security.length > 0) {
+      edbEnqueueTriggered(inst, { effects: _fx.security }, _edbEv, null, 'sec');
+    }
   }
   // EDBの付与効果（grant_effectで得た一時効果）
   try {
@@ -17020,7 +17033,7 @@ const EDB_TRIGGER_JP = {
   'ターン終了時':'turn_end', 'お互いのターン終了時':'turn_end', '自分のターン終了時':'turn_end',
   'メインフェイズ開始時':'main_start', '自分のメインフェイズ開始時':'main_start',
   'ターン開始時':'turn_start', '自分のターン開始時':'turn_start',
-  '移動時':'on_move', 'メイン':'main', 'カウンター':'counter', 'セキュリティ':'security',
+  '移動時':'on_move', 'メイン':'main', 'カウンター':'counter', 'セキュリティ':'security', 'セキュリティ効果':'security',
 };
 const EDB_EVENT_FROM_SPECIAL = {
   onCardPlayed:        'when_my_digimon_played',
