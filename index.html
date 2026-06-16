@@ -10065,6 +10065,31 @@ function executePlayerAttack(attacker) {
 }
 
 // Sアタック複数チェック（1枚ずつ順番に・途中で負けたら終了）
+// セキュリティで公開されたオプションのセキュリティ効果を「所有者(守備側)視点」で解決するためのヘルパ。
+// EDB op は side:'my'/'opp' で G.myXxx/G.oppXxx を直接選ぶ「自分中心」設計のため、
+// 守備側を一時的に「自分」に見せて効果を解決し、完了後に元へ戻す（参照のスワップ）。
+// ※ memory は符号付きの単一ゲージ（負=自陣）で「側」の概念が配列と異なるため、意図的に入替対象外。
+//   そのため security 内で memory/satk を操作するカード(例:ST2-13)はフリップ時に攻撃側視点で解決され得る（既知の限界）。
+//   消滅/配置/draw/recovery/bounce/devolve/move 等は配列を入替済みのため守備側視点で正しく解決される。
+function _securitySwapSides() {
+  let t;
+  t=G.myBattleArea; G.myBattleArea=G.oppBattleArea; G.oppBattleArea=t;
+  t=G.myTrash;      G.myTrash=G.oppTrash;           G.oppTrash=t;
+  t=G.mySecurity;   G.mySecurity=G.oppSecurity;     G.oppSecurity=t;
+  t=G.myHand;       G.myHand=G.oppHand;             G.oppHand=t;
+  t=G.myDeck;       G.myDeck=G.oppDeck;             G.oppDeck=t;
+  t=G.myBreeding;   G.myBreeding=G.oppBreeding;     G.oppBreeding=t;
+}
+// 効果キュー/モーダルが落ち着く（=セキュリティ効果が解決し切る）まで待ってから cb を呼ぶ。
+function _afterSecuritySettles(cb, tries) {
+  tries = tries || 0;
+  const modalOpen = document.getElementById('modal-overlay')?.classList.contains('open');
+  const busy = (G.effectQueue && G.effectQueue.length > 0) || G.effectQueueRunning || G._edbBusy
+            || (G._simultaneousEffects && G._simultaneousEffects.length > 0) || modalOpen;
+  if (busy && tries < 400) { setTimeout(()=>_afterSecuritySettles(cb, tries+1), 50); return; }
+  cb();
+}
+
 function doSecurityCheckChain(attacker, remaining) {
   if (remaining <= 0 || G.oppSecurity.length === 0) {
     // 全チェック完了またはセキュリティ0
@@ -10104,12 +10129,33 @@ function doSecurityCheckChain(attacker, remaining) {
       continueChain = false; // 同値も終了
     }
   } else {
-    // デジモン以外（オプション等）→ セキュリティ効果発動・チェーンは続行
-    log(`　→ セキュリティ効果: ${secCard?.name||secCardId}（${secCard?.type||'?'}）→ トラッシュへ`,"system");
+    // デジモン以外（オプション等）→ 公開したオプション自身のセキュリティ効果を「所有者(守備側)視点」で解決
     G.oppTrash.push(secCardId);
-    // セキュリティ効果を発火
+    const _fxSec = (typeof edbFx==='function') ? edbFx(secCardId) : null;
+    const _hasEdbSec = _fxSec && Array.isArray(_fxSec.security) && _fxSec.security.length > 0;
+    if (_hasEdbSec) {
+      log(`　→ セキュリティ効果を発揮: ${secCard?.name||secCardId}`,"important");
+      const secInst = newInstance(secCardId);
+      // 公開オプションは守備側(opp)の持ち物。守備側を「自分」視点にして効果を解決し、完了後に視点を戻す。
+      // （例: EX12-073「このカードをバトルエリアに置く」→守備側の場へ／ガイアフォース系「相手のデジモン消滅」→攻撃側を対象、が正しくなる）
+      _securitySwapSides();
+      try { triggerEffect(secInst, 'セキュリティ効果', G.myBattleArea, G.myTrash); } catch(e){}
+      _afterSecuritySettles(() => {
+        _securitySwapSides(); // 視点を元に戻す
+        fireSpecialTrigger('onSecurityBattle');
+        render();
+        if (continueChain && remaining > 1 && G.oppSecurity.length > 0) {
+          setTimeout(()=>doSecurityCheckChain(attacker, remaining - 1), 400);
+        } else {
+          fireAttackEndEffects(attacker); render();
+        }
+      });
+      return; // 残処理は settle コールバックで実施
+    }
+    // EDB未登録オプション → 従来どおりトラッシュのみ（legacyの_parsed_securityは action:'unknown' 等で不安定なため未対応。
+    //   セキュリティ効果を動かしたいオプションは effects-db に security ブロックを登録すること。）
+    log(`　→ セキュリティ効果: ${secCard?.name||secCardId}（${secCard?.type||'?'}）→ トラッシュへ`,"system");
     try { fireSpecialTrigger('onSecurityBattle'); } catch(e){}
-    // チェーンは継続（オプション等のセキュリティはバトルにならないため負けにならない）
   }
 
   fireSpecialTrigger('onSecurityBattle');
