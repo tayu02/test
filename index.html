@@ -1604,6 +1604,53 @@ const _cardCache = {};
 let CARD_DB = {};
 let G_cardDBLoaded = false;
 
+// ===================================================
+// [Opus追加] 個人用：カード画像のURL構築（GitHub等のRAWベースから型番ごとに自動生成）
+// ↓↓↓ ここ(CARD_IMG_BASE)だけ自分のリポジトリに直してください ↓↓↓
+//   形式 : https://raw.githubusercontent.com/＜ユーザー名＞/＜リポジトリ名＞/＜ブランチ＞/digimon cards
+//   例   : https://raw.githubusercontent.com/tayu/digimon-cards/main/digimon cards
+//   ・末尾の「digimon cards」フォルダまでを指定（その下の AD、RB / BT1~5 等はコードが自動で付けます）
+//   ・空白や「、」などの記号はそのまま書いてOK（コード側で自動URLエンコードします）
+//   ・'' にすると画像URL生成OFF（cards.jsonのimage_urlにフォールバック＝従来動作）
+const CARD_IMG_BASE = 'https://raw.githubusercontent.com/music/test/main/digimon cards';
+
+// カードID → 収録フォルダ名（GitHubのフォルダ構成に対応）。未知の接頭辞は null。
+function _cardImgFolder(id) {
+  const m = String(id || '').match(/^([A-Z]+)(\d*)-/);
+  if (!m) return null;
+  const pre = m[1], num = m[2] ? parseInt(m[2], 10) : null;
+  if (pre === 'AD' || pre === 'RB') return 'AD、RB';
+  if (pre === 'LM') return 'LM';
+  if (pre === 'P')  return 'P';
+  if (pre === 'ST') return 'ST';
+  if (pre === 'BT') {
+    if (num >= 1 && num <= 5)   return 'BT1~5';
+    if (num >= 6 && num <= 10)  return 'BT6~10';
+    if (num >= 11 && num <= 15) return 'BT11~15';
+    if (num >= 16 && num <= 20) return 'BT16~20';
+    if (num >= 21 && num <= 25) return 'BT21~25';
+    return null;
+  }
+  if (pre === 'EX') {
+    if (num >= 1 && num <= 7)  return 'EX1~7';
+    if (num >= 8 && num <= 15) return 'EX8~15';
+    return null;
+  }
+  return null;
+}
+// CARD_IMG_BASE が未設定／プレースホルダ(USERNAME/REPO)のままなら画像URL生成OFF（破損画像を出さずimage_urlへフォールバック）
+function _cardImgReady() { return !!CARD_IMG_BASE && !/USERNAME\/REPO/.test(CARD_IMG_BASE); }
+// カードIDから画像URL（パラレルは使わず基本型番の .png を参照）。未対応IDは '' を返す。
+function cardImgUrl(id) {
+  if (!_cardImgReady()) return '';
+  const folder = _cardImgFolder(id);
+  if (!folder) return '';
+  return encodeURI(`${CARD_IMG_BASE}/${folder}/${id}.png`);
+}
+// 裏面画像（「digimon cards」直下に置いた U-URAGAWA*.png）のURL。
+// ※ここでは encodeURI しない（loadBackAssets / _probeImg 側で encodeURI されるため二重エンコード防止）。
+function cardBackUrl(name) { return _cardImgReady() ? `${CARD_IMG_BASE}/${name}` : name; }
+
 // cards.json（スクレイピング生データ）1件をCARD_DB形式に変換する
 // 値は全てcards.jsonの記載をそのまま写すだけで、推測による補完は行わない
 // 正規化は旧ビルドパイプラインと同一（＋－・全角数字・全角スペースのみ。改行は保持）
@@ -1639,7 +1686,7 @@ function convertRawCard(c) {
       out.evolution = [{ type: '特殊', text: c.evocost }];
     }
   }
-  out.img = c.image_url || '';
+  out.img = cardImgUrl(c.id) || c.image_url || '';
   return out;
 }
 
@@ -12618,7 +12665,7 @@ function renderHand() {
     if(card.type==="オプション")innerHTML+=`<div class="card-type-badge badge-option">OP</div>`;
     const onclick = selActive && isHighlight ? `onSelectionTap('${cId}')` : selActive ? '' : `playCardFromHand(${i})`;
     // 撮影モード：実カード画像を差し込む
-    const filmImg=(window.FILM&&FILM.on)?FILM.imgTag(cId):"";
+    const filmImg=(window.FILM&&_cardImgReady())?FILM.imgTag(cId):"";
     const filmCls=filmImg?" film-imged":"";
     row.insertAdjacentHTML("beforeend",`<div class="card-mini ${colorClass} hand-card${filmCls}" data-film-card="${cId}" onclick="${onclick}" title="${card.name}" style="${dimmed}${highlight}">${filmImg}${innerHTML}</div>`);
   }
@@ -12638,7 +12685,7 @@ function renderBreeding() {
   const colors=card?.color||[];
   const colorClass=getColorClass(colors);
   // 撮影モード：実カード画像を差し込む
-  const filmImg=(window.FILM&&FILM.on&&card)?FILM.imgTag(card.id):"";
+  const filmImg=(window.FILM&&_cardImgReady()&&card)?FILM.imgTag(card.id):"";
   const filmCls=filmImg?" film-imged":"";
   slot.innerHTML=`<div class="card-mini ${colorClass}${filmCls}" data-film-card="${inst.cardId}" style="width:52px;" onclick="openBreedingMenu()">${filmImg}<div class="card-name">${card?.name||inst.cardId}</div><div class="card-lv">Lv.${card?.level||'—'}</div>${card?.dp?`<div class="card-dp">${card.dp.toLocaleString()}</div>`:''}${inst.stack.length>0?`<div class="card-lv">進化元${inst.stack.length}枚</div>`:''}</div>`;
 }
@@ -12709,7 +12756,7 @@ function buildCardMiniHTML(inst, options={}) {
   if(kws.length>0)innerHTML+=`<div style="margin-top:2px;">${kws.map(k=>`<span class="keyword-badge">${k}</span>`).join('')}</div>`;
   const onclick=options.onclick||"";
   // 撮影モード：実カード画像を差し込む（画像が無い/読めない場合は従来表示のまま）
-  const filmImg=(window.FILM&&FILM.on)?FILM.imgTag(card.id):"";
+  const filmImg=(window.FILM&&_cardImgReady())?FILM.imgTag(card.id):"";
   const filmCls=filmImg?" film-imged":"";
   return `<div class="card-slot"><div ${idAttr} class="card-mini ${colorClass}${restClass}${selClass}${filmCls}" data-film-card="${card.id}" onclick="${onclick}" style="${options.extraStyle||''}" title="${card.name}${stackLen>0?' (進化元'+stackLen+'枚)':''}">${filmImg}${innerHTML}</div>${stackLen>0?`<div class="stack-count">進化元${stackLen}枚</div>`:''}</div>`;
 }
@@ -13324,7 +13371,7 @@ function renderDoubleSide(side, state) {
       const dp = getDP(inst);
       const div = document.createElement('div');
       // 撮影モード：実カード画像を差し込む
-      const filmImg = (window.FILM&&FILM.on) ? FILM.imgTag(inst.cardId) : '';
+      const filmImg = (window.FILM&&_cardImgReady()) ? FILM.imgTag(inst.cardId) : '';
       div.className = `double-digimon-card${inst.isRested?' rested':''}${isActive?' active-card':''}${filmImg?' film-imged':''}`;
       div.setAttribute('data-film-card', inst.cardId);
       div.innerHTML = `${filmImg}<div class="dcard-name">${c?.name||'?'}</div>
@@ -13350,7 +13397,7 @@ function renderDoubleSide(side, state) {
       const c = getCard(cId);
       const div = document.createElement('div');
       // 撮影モード：実カード画像を差し込む
-      const filmImg = (window.FILM&&FILM.on) ? FILM.imgTag(cId) : '';
+      const filmImg = (window.FILM&&_cardImgReady()) ? FILM.imgTag(cId) : '';
       div.className = `double-hand-card${isActive?' active-card':''}${filmImg?' film-imged':''}`;
       div.setAttribute('data-film-card', cId);
       div.innerHTML = `${filmImg}<div class="hcard-name">${c?.name||'?'}</div>
@@ -16747,8 +16794,8 @@ function pmClear() {
 // HTMLと同じフォルダに下記の画像を置くと、デッキ/セキュリティ/デジタマの
 // 裏面がその画像に差し替わる。置かなければ従来の絵柄のまま（安全）。
 const BACK_ASSETS = {
-  deckSec:  'U-URAGAWA.png',           // デッキ・セキュリティの裏面
-  digitama: 'U-URAGAWA DIGITAMA.png',  // デジタマの裏面
+  deckSec:  cardBackUrl('U-URAGAWA.png'),           // デッキ・セキュリティの裏面
+  digitama: cardBackUrl('U-URAGAWA DIGITAMA.png'),  // デジタマの裏面
 };
 function _probeImg(src) {
   return new Promise(res => {
@@ -17550,6 +17597,31 @@ function edbRunBlock(block, inst) {
 }
 
 // 命令列の逐次実行（モーダル系opはnextコールバックで継続）
+// ===================================================
+// [Opus追加/監査②⑦] 未対応・手動処理の「一元集約シンク」。
+//   未対応op・手動処理は今後すべてこの1関数を通す方針（散在していたlogを集約）。
+//   ・ログ表示は従来どおり維持
+//   ・G._unsupportedLog に記録（種別・内容・出所）
+//   ・reportUnsupported() でセッション内の集計を出せる（監査⑦の数値把握）
+//   ※既存のlegacyハンドラ内「（手動で処理してください）」も、触る機会に順次この関数へ寄せていく。
+function unsupportedEffect(kind, detail, sourceName) {
+  const rec = { kind, detail: String(detail || ''), source: sourceName || '', t: Date.now() };
+  try { (G._unsupportedLog || (G._unsupportedLog = [])).push(rec); } catch (e) {}
+  const body = kind === 'unknown-op' ? `未知のop: ${rec.detail}`
+            : kind === 'manual'      ? `手動処理: ${rec.detail}`
+            : `${kind}: ${rec.detail}`;
+  log(`⚠️ ${body}（手動で処理してください）`, kind === 'manual' ? 'important' : 'system');
+}
+// 未対応の集計（デバッグコンソールで reportUnsupported() を実行）
+function reportUnsupported() {
+  const arr = (typeof G !== 'undefined' && G._unsupportedLog) || [];
+  const byKind = {}, byDetail = {};
+  for (const r of arr) { byKind[r.kind] = (byKind[r.kind] || 0) + 1; const k = r.kind + ': ' + r.detail; byDetail[k] = (byDetail[k] || 0) + 1; }
+  console.log('=== 未対応効果サマリ（今セッション）===\n総数:', arr.length, '／種別:', byKind);
+  Object.entries(byDetail).sort((a, b) => b[1] - a[1]).slice(0, 20).forEach(([k, n]) => console.log(`  ${n}×  ${k}`));
+  return { total: arr.length, byKind, byDetail };
+}
+
 function edbRunOps(ops, ctx, done) {
   let i = 0;
   const next = () => {
@@ -17558,7 +17630,7 @@ function edbRunOps(ops, ctx, done) {
     const op = ops[i++];
     const h = EDB_OPS[op.op];
     if (!h) {
-      log(`⚠️ 未知のop: ${op.op}（手動で処理してください）`, 'system');
+      unsupportedEffect('unknown-op', op.op);
       next(); return;
     }
     try { h(op, ctx, next); }
@@ -18105,33 +18177,53 @@ const EDB_OPS = {
       bases = edbSelectCandidates(p.base, ctx.inst, ctx).filter(it => it.kind === 'inst').map(it => it.inst);
     }
     if (bases.length === 0) { log('　→ 進化させるデジモンがいません', 'system'); ctx.failed = true; next(); return; }
-    // 進化先候補
+    // 進化先候補（base非依存の素の候補リスト）
     const t = p.target || {};
     const zones = t.from || ['hand'];
-    const targets = [];
+    const rawTargets = [];
     for (const z of zones) {
       for (const it of edbSelectCandidates({ zone: z, filter: t.filter, type: t.type || 'デジモン' }, ctx.inst, ctx)) {
         const c = getCard(it.cId);
         if (t.nameIs && !(c?.name === t.nameIs || cardNameMatches(c?.name||'', t.nameIs))) continue;
-        targets.push(it);
+        rawTargets.push(it);
       }
     }
-    if (targets.length === 0) { log('　→ 進化先のカードがありません', 'system'); ctx.failed = true; next(); return; }
-    const cost = p.cost != null ? p.cost : 0;
-    if (!canAfford(cost)) { log(`　→ コスト不足のため進化できません（進化コスト${cost}）`, 'system'); ctx.failed = true; next(); return; }
-    const doEvolve = (base, it) => {
-      edbRemoveCardItem(it);
-      edbEvolveInst(base, it.cId, cost);
+    // costReduction 指定時＝「進化ルール準拠＋進化先の進化コスト-軽減」モード（getEvoCostで base→target の正規コストを算出し軽減）。
+    // 未指定＝従来どおり固定 cost（p.cost）で、進化ルール検証もしない（ST14-02等の既存挙動を保つ）。
+    const ruleMode = (p.costReduction != null);
+    // 指定 base に対する有効な進化先＋支払いコストの一覧
+    const targetsFor = (base) => {
+      if (!ruleMode) return rawTargets.map(it => ({ it, cost: (p.cost != null ? p.cost : 0) }));
+      const out = [];
+      for (const it of rawTargets) {
+        const tc = getCard(it.cId);
+        const baseCost = getEvoCost(tc, base); // 進化ルール（色/Lv/特殊）を満たさなければ null。G.evoDiscount＋進化元軽減込み。
+        if (baseCost == null) continue;
+        out.push({ it, cost: Math.max(0, baseCost - p.costReduction) });
+      }
+      return out;
+    };
+    const doEvolve = (base, entry) => {
+      if (!canAfford(entry.cost)) { log(`　→ コスト不足のため進化できません（進化コスト${entry.cost}）`, 'system'); ctx.failed = true; next(); return; }
+      edbRemoveCardItem(entry.it);
+      edbEvolveInst(base, entry.it.cId, entry.cost);
+      if (ruleMode) G.evoDiscount = 0; // 通常進化と同様、適用済みの軽減をリセット
       next();
     };
     const pickTarget = (base) => {
-      if (targets.length === 1 && !p.optional) { doEvolve(base, targets[0]); return; }
-      edbOpenPick(`進化先（コスト${cost}）`, targets, { count:1, skippable: !!p.optional, note:`${getCard(base.cardId)?.name} を進化させます` },
-        (seld) => doEvolve(base, seld[0]),
+      const cand = targetsFor(base);
+      if (cand.length === 0) { log('　→ 進化先のカードがありません', 'system'); ctx.failed = true; next(); return; }
+      if (cand.length === 1 && !p.optional) { doEvolve(base, cand[0]); return; }
+      const items = cand.map(e => ({ ...e.it, label: `${getCard(e.it.cId)?.name}（コスト${e.cost}）`, _cost: e.cost }));
+      edbOpenPick(`進化先`, items, { count:1, skippable: !!p.optional, note:`${getCard(base.cardId)?.name} を進化させます` },
+        (seld) => doEvolve(base, { it: seld[0], cost: seld[0]._cost }),
         () => { ctx.failed = true; next(); });
     };
-    if (bases.length === 1) { pickTarget(bases[0]); return; }
-    const baseItems = bases.map(b => ({ kind:'inst', inst:b, label: `${getCard(b.cardId)?.name} Lv.${getCard(b.cardId)?.level||'?'}` }));
+    // ruleMode 時は「有効な進化先が1つ以上ある base」だけを対象にする
+    const validBases = ruleMode ? bases.filter(b => targetsFor(b).length > 0) : bases;
+    if (validBases.length === 0) { log('　→ 進化できる組み合わせがありません', 'system'); ctx.failed = true; next(); return; }
+    if (validBases.length === 1) { pickTarget(validBases[0]); return; }
+    const baseItems = validBases.map(b => ({ kind:'inst', inst:b, label: `${getCard(b.cardId)?.name} Lv.${getCard(b.cardId)?.level||'?'}` }));
     edbOpenPick('進化させるデジモン', baseItems, { count:1, skippable: !!p.optional },
       (seld) => pickTarget(seld[0].inst),
       () => { ctx.failed = true; next(); });
@@ -18243,7 +18335,7 @@ const EDB_OPS = {
   },
 
   'manual': (p, ctx, next) => {
-    log(`⚠️ 手動処理: ${p.text || '（説明なし）'}`, 'important');
+    unsupportedEffect('manual', p.text || '（説明なし）');
     next();
   },
 };
@@ -18267,6 +18359,8 @@ window.onload = async function() {
   await loadEffectsDB();
   pmInit();
   loadBackAssets();
+  // [Opus変更] カード画像が設定済みなら、盤面カードの実画像表示＆大型化を通常プレイの標準として有効化
+  if (typeof _cardImgReady === 'function' && _cardImgReady()) document.body.classList.add('board-img');
   FILM.init();
   if (!gateOk) {
     document.getElementById('gate-page').style.display = 'flex';
@@ -18834,25 +18928,27 @@ body.film-mode.film-idle #film-caption.film-cap-empty { opacity:0; pointer-event
 
 /* 盤面カードの実画像表示（読み込み失敗時はfilm-imgedが外れて従来表示に戻る） */
 .film-card-img { display:none; }
-body.film-mode .film-imged { position:relative; overflow:hidden; padding:0; }
-body.film-mode .film-imged .film-card-img {
+/* [Opus変更] 盤面カードの実画像表示＆大型化は「通常プレイの標準」に昇格（body.board-img＝画像設定時に常時ON）。
+   撮影モードと切り離した。撮影モード(film-mode)は演出（ログ非表示/UIフェード/キャプション/枚数拡大）専用に残す。 */
+body.board-img .film-imged { position:relative; overflow:hidden; padding:0; }
+body.board-img .film-imged .film-card-img {
   display:block; position:absolute; inset:0; width:100%; height:100%;
   object-fit:cover; border-radius:inherit; z-index:1;
 }
-body.film-mode .film-imged > *:not(.film-card-img) { visibility:hidden; }
-/* フリーダブルの即席消滅ボタンは撮影中は非表示（モーダル経由の同機能で代替） */
+body.board-img .film-imged > *:not(.film-card-img) { visibility:hidden; }
+/* フリーダブルの即席消滅ボタンは撮影中のみ非表示（撮影モードに残す） */
 body.film-mode .fd-destroy-btn { display:none !important; }
 
-/* カードの大型化（画像が映えるサイズに） */
-body.film-mode .card-mini { width:74px; min-height:104px; }
-body.film-mode .card-mini.film-imged { height:104px; }
-body.film-mode .card-mini.rested { margin:0 16px; }
-body.film-mode #breeding-slot .card-mini { width:74px !important; height:104px; }
-body.film-mode .double-hand-card { width:72px; height:101px; }
-body.film-mode .double-digimon-card.film-imged {
+/* カードの大型化（画像が映えるサイズに）＝通常プレイの標準 */
+body.board-img .card-mini { width:74px; min-height:104px; }
+body.board-img .card-mini.film-imged { height:104px; }
+body.board-img .card-mini.rested { margin:0 16px; }
+body.board-img #breeding-slot .card-mini { width:74px !important; height:104px; }
+body.board-img .double-hand-card { width:72px; height:101px; }
+body.board-img .double-digimon-card.film-imged {
   width:84px; height:118px; min-width:84px; max-width:84px;
 }
-body.film-mode .double-digimon-card.rested {
+body.board-img .double-digimon-card.rested {
   transform:rotate(90deg); opacity:1; margin:0 18px;
 }
 
