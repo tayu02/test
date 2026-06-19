@@ -2,11 +2,11 @@
   "_meta": {
     "version": 1,
     "description": "デジモンカード効果DB（事前コンパイル済み効果データ）。エントリがあるカードはテキスト解析を使わずこのデータで確定動作する。書式は『効果データ方式移行指示書.md』参照。P1で「基本ベルゼ」デッキ（ST-14基軸）を収録。",
-    "updated": "2026-06-16",
+    "updated": "2026-06-19",
     "_p2_note": "P2でOpusが原文照合し確定したカードを追加（_verified:true）。条件付き25枚を手動補完して確定（Lv.7条件4枚は表現不可のため差し戻し）。",
     "_provenance": "このファイルは Fable5（15枚・_memoなし）＋ Opus（42枚・_memoに(Opus)）の混在。ファイル名のversion-Opusは『Opusが改変した作業版』の意味で、全エントリがOpus作という意味ではない。元のFable5版は別途 effects-db.json（無印）。",
     "_p2_audit": "P2(Opus): 既存ドラフト23枚を原文照合監査。忠実かつ完全な2 base（P-190登場時draw1 / BT9-070進化時mill3）を昇格。残21は条件取りこぼし/遅延の即時化/条件誤付着/ブロック欠落のため意図的に保留（draft据置）。詳細は draft-audit-version-Opus.md。parallel(-P1等)はエンジンがbase idへフォールバックするため base のみ登録。",
-    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。",
+    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。 / 第12弾＝「進化時/登場時 相手1体の進化元をN枚破棄」5 base（trash_source初使用）：ST2-09(進化時・下2)・BT1-043(進化時・下4)・BT8-022(登場時・上1)・EX1-012(登場時・下1)・P-003(登場時・下1)。全て進化元/セキュリティ無し＝主効果のみで全ブロック被覆。p.from=top/bottom・p.count=破棄枚数・対象は進化元保持(stack>0)の相手1体(複数候補picker/0体不発)。検証=test_b2_trashsource-version-Opus.js。確定171→176。 / 第13弾＝『完全被覆できる残り』3 base：P-079(登場時・赤テイマー条件→DP3000以下消滅)・P-082(登場時・緑テイマー条件→レスト)・P-131(登場時レスト＋進化元static『自分のターンDP+2000』)。条件はexists、dpMaxはgetDP、staticはisMyTurn恒常。無条件クリーン札は枯渇しつつあり、以降は条件付/継承を伴う札が中心。検証=test_b2_batch13-version-Opus.js。確定176→179。",
     "_ex12073": "EX12-073「巨大肉」(白オプション・確定164枚目)を追加。cards.jsonに欠落のためカードデータはcard-overrides.jsonに新規登録(id付き=新規カード認識)。effect実行はこのEDBエントリが担う。【メイン】reveal3→特徴NSp/DS/NSo/WG/ME/VB一致1枚を手札(upTo)→残りデッキ下。「その後このカードをバトルエリアに置く」はconfirmPlayOptionのstaysInBattle判定(card._effect_text内の同文を検知)で自動配置されるためmainにplace_self_battleは入れない(入れると重複)。第2の【メイン】【ディレイ】=delay text:'メモリー+2'(次の自分メイン開始時に解決)。security=place_self_battle。複数【メイン】はedbEnqueueTriggeredが同時誘発として両方積む(順番選択モーダル)。【限界】使用条件(特徴持ちデジモン/テイマー＋育成エリア)はEDB自動判定不可＝エンジンのオプション使用ゲートは色のみ判定し強制使用可。ソロで自己判定する前提。検証=test_ex12073-version-Opus.js 7/0(reveal/staysInBattle重複なし/delay/security)。",
     "_engine_fixes_opus": "第3-4セッション(Opus)でv5 HTMLに2件のエンジン修正を適用(いずれも実証再現→修正→回帰85/0)。①ターン終了バグ: checkTurnEnd()のモーダル閉分岐がeffectQueueの残りを確認せず300ms後にendMyTurnをスケジュール→同時誘発で片方処理後にメモリーが渡ると残り効果が落ちる。修正=保留条件にqueueBusy(effectQueue.length>0||effectQueueRunning||_edbBusy||_simultaneousEffects残)を追加し、キューが空くまでpendingTurnEndで保留(processEffectQueue/closeModalが空時に発火)。検証=test_turnend_bug-version-Opus.js 5/0(デッドロック反証込み)。②EDBオプションsecurity不発: triggerEffect('セキュリティ効果')が(a)EDB_TRIGGER_JP未マップで'security'に変換されず(b)edbEnqueueTriggeredがfx.effectsのみ読みfx.securityを無視→全EDBオプションのsecurity:[]ブロックが皆無発火だった(ST1-16等既存も含む)。修正=(a)EDB_TRIGGER_JPに'セキュリティ効果':'security'追加(b)triggerEffectで_edbEv==='security'時にfx.securityをedbEnqueueTriggeredで別途ディスパッチ。検証=ST1-16/EX12-073両方のsecurityが発火確認。③実セキュリティフリップ未発火(実証修正): 実機でST1-16/EX12-073/BT9-095をセキュリティアタックで公開しても効果が出ずトラッシュ直行と報告(ユーザ実証)。原因=doSecurityCheckChainのオプション分岐が公開カードをoppTrashへ送りfireSpecialTrigger('onSecurityBattle')を撃つだけで、公開オプション自身の'security'ブロックを一切解決していなかった(triggerEffect('セキュリティ効果')経由とは別経路)。修正=オプション公開時、EDB登録済み(fx.security有)なら『所有者(守備側)視点』で自動解決する。具体的には_securitySwapSides()でG.my*↔G.opp*の参照を一時入替→triggerEffect(secInst,'セキュリティ効果')→_afterSecuritySettles()で効果キュー/モーダルが落ち着くのを待ち視点を復元してからチェーン継続。これにより『このカードをバトルエリアに置く』(place_self_battleはmyBattleArea固定)→守備側の場へ、『相手のデジモン消滅』(side:'opp')→攻撃側を対象、と正しく解決される。EDB未登録オプションは_parsed_securityがaction:'unknown'等で不安定なため従来どおりトラッシュのみ(=securityを動かすにはEDB登録が必要)。検証=test_security_flip-version-Opus.js 6/0(EX12-073→守備側場/攻撃側不干渉/ST1-16→攻撃側消滅/通常デジモン回帰)。【ダブルモード注意】G=GD[activePlayer]のため入替は一時的にGD[active]の配列も変えるがsettleコールバックで必ず復元(net-zero)。 【限界】memoryは符号付き単一ゲージで側概念が配列と異なるため入替対象外＝security内でmemory/satkを操作するカード(ST2-13等)はフリップ時に攻撃側視点で解決され得る。消滅/配置/draw/recovery/bounce/devolve/moveは入替済配列で正しい。",
     "_bt9095": "BT9-095「ガイアフォースZERO」(赤オプション・確定165枚目)を追加。【メイン】DP13000以下の相手デジモン1体消滅。security=相手デジモン1体消滅。実機でフリップ未発火と報告された3枚(ST1-16/EX12-073/BT9-095)のうちBT9-095のみEDB未登録だったため追加。【手動】使用コスト-2(X抗体進化元条件)/その後グレイモン名称デジモンでアタック=opが無く未対応。",
@@ -4989,6 +4989,227 @@
             "text": "その後、このカード(ヴァイオレット・スクランブル)を手札に加える"
           }
         ]
+      }
+    ]
+  },
+  "ST2-09": {
+    "_name": "ズドモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「進化時相手のデジモン1体の進化元を、下から2枚破棄する。」。on_evolve trash_source(from:bottom,count:2＝下からN枚をstack.shiftでトラッシュへ)。selector既定=相手1体・進化元を持つ対象のみ候補(stack>0でフィルタ)・複数候補picker・0体は不発(ctx.failed)。進化元/セキュリティ無し＝全ブロック被覆。parallelはedbFxの-P除去でbaseへ自動フォールバック(明示登録不要)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-043": {
+    "_name": "サーベルレオモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「進化時相手のデジモン1体の進化元を、下から4枚破棄する。」。on_evolve trash_source(from:bottom,count:4＝下からN枚をstack.shiftでトラッシュへ)。selector既定=相手1体・進化元を持つ対象のみ候補(stack>0でフィルタ)・複数候補picker・0体は不発(ctx.failed)。進化元/セキュリティ無し＝全ブロック被覆。parallelはedbFxの-P除去でbaseへ自動フォールバック(明示登録不要)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  },
+  "BT8-022": {
+    "_name": "ユキアグモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時相手のデジモン1体の進化元を、上から1枚破棄する。」。on_play trash_source(from:top,count:1＝上からN枚をstack.popでトラッシュへ)。selector既定=相手1体・進化元を持つ対象のみ候補(stack>0でフィルタ)・複数候補picker・0体は不発(ctx.failed)。進化元/セキュリティ無し＝全ブロック被覆。parallelはedbFxの-P除去でbaseへ自動フォールバック(明示登録不要)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "top",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-012": {
+    "_name": "ゴマモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時相手のデジモン1体の進化元を、下から1枚破棄する。」。on_play trash_source(from:bottom,count:1＝下からN枚をstack.shiftでトラッシュへ)。selector既定=相手1体・進化元を持つ対象のみ候補(stack>0でフィルタ)・複数候補picker・0体は不発(ctx.failed)。進化元/セキュリティ無し＝全ブロック被覆。parallelはedbFxの-P除去でbaseへ自動フォールバック(明示登録不要)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-003": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時相手のデジモン1体の進化元を、下から1枚破棄する。」。on_play trash_source(from:bottom,count:1＝下からN枚をstack.shiftでトラッシュへ)。selector既定=相手1体・進化元を持つ対象のみ候補(stack>0でフィルタ)・複数候補picker・0体は不発(ctx.failed)。進化元/セキュリティ無し＝全ブロック被覆。parallelはedbFxの-P除去でbaseへ自動フォールバック(明示登録不要)。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-079": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時赤の自分のテイマーがいるとき、DP3000以下の相手のデジモン1体を消滅させる。」。条件=exists(my/battle/テイマー/colorAny:[赤])＝P-080同型。本体=destroy(opp,デジモン,dpMax:3000,count:1)。dpMaxはedbSelectCandidatesがgetDPで現在値判定(17344)。進化元/セキュリティ無し＝全ブロック被覆。条件の両分岐(在=発火/不在=不発/青のみ=不発)を機能テスト。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "colorAny": [
+                "赤"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 3000
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "P-082": {
+    "_name": "クネモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時緑の自分のテイマーがいるとき、相手のデジモン1体をレストさせる。」。条件=exists(my/battle/テイマー/colorAny:[緑])。本体=rest(opp,デジモン,count:1)＝既定アクティブ対象/複数候補picker/0体不発。進化元/セキュリティ無し＝全ブロック被覆。条件両分岐を機能テスト。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "colorAny": [
+                "緑"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "P-131": {
+    "_name": "プテロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済。effect「登場時相手のデジモン1体をレストさせる。」=on_play rest(opp,count:1)。evolved_effect「自分のターンこのデジモンをDP+2000。」=inherited static(条件isMyTurn・grant dp_mod target:self value:2000)＝ST14-06同型だが特徴条件なしの恒常版。継続評価でgetDPに加算(自分ターンのみ)。effectとinheritedを分離(evolved_effectをeffectsに入れると誤発火)。全ブロック被覆。parallel P-131-P1〜P3はbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "inherited": [
+      {
+        "kind": "static",
+        "condition": {
+          "isMyTurn": true
+        },
+        "grant": {
+          "op": "dp_mod",
+          "target": "self",
+          "value": 2000
+        }
       }
     ]
   }
