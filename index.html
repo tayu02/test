@@ -1612,11 +1612,7 @@ let G_cardDBLoaded = false;
 //   ・末尾の「digimon cards」フォルダまでを指定（その下の AD、RB / BT1~5 等はコードが自動で付けます）
 //   ・空白や「、」などの記号はそのまま書いてOK（コード側で自動URLエンコードします）
 //   ・'' にすると画像URL生成OFF（cards.jsonのimage_urlにフォールバック＝従来動作）
-// [Opus変更] ユーザの実リポジトリ（tayu02/test, main, 直下の「digimon cards」フォルダ）の絶対URL。
-//   GitHub Pages でもローカルでも、HTMLをどこで開いても画像が解決する。
-//   ・別リポジトリに移す場合は tayu02/test の部分を変更。
-//   ・もし index.html と画像を必ず一緒に置く運用なら、相対パス 'digimon cards' でも可。
-const CARD_IMG_BASE = 'https://raw.githubusercontent.com/tayu02/test/main/digimon cards';
+const CARD_IMG_BASE = 'https://raw.githubusercontent.com/music/test/main/digimon cards';
 
 // カードID → 収録フォルダ名（GitHubのフォルダ構成に対応）。未知の接頭辞は null。
 function _cardImgFolder(id) {
@@ -17277,6 +17273,10 @@ function edbCheckCondition(cond, inst) {
     if (cond.exists)    return edbSelectCandidates(cond.exists, inst, { inst }).length > 0;
     if (cond.notExists) return edbSelectCandidates(cond.notExists, inst, { inst }).length === 0;
     if (cond.self) return edbCardMatchesFilter(getCard(inst && inst.cardId), cond.self);
+    if (cond.selfSource) {  // [Opus追加/P2-B1] 自分の進化元(stack)に名称/特徴一致カードがあるか（「進化元に「アグモン」がある」等）
+      const _st = (inst && inst.stack) || [];
+      return _st.some(id => edbCardMatchesFilter(getCard(id), cond.selfSource));
+    }
     if (cond.selfKeyword) return !!inst && hasKeyword(inst, cond.selfKeyword);  // [Opus追加/P2] 保持者が指定キーワードを持つか
     if (cond.isMyTurn != null) return cond.isMyTurn === !!G.isMyTurn;
     if (cond.memory) return edbCompare(-G.memory, cond.memory.op || '>=', cond.memory.value);
