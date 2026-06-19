@@ -1612,7 +1612,11 @@ let G_cardDBLoaded = false;
 //   ・末尾の「digimon cards」フォルダまでを指定（その下の AD、RB / BT1~5 等はコードが自動で付けます）
 //   ・空白や「、」などの記号はそのまま書いてOK（コード側で自動URLエンコードします）
 //   ・'' にすると画像URL生成OFF（cards.jsonのimage_urlにフォールバック＝従来動作）
-const CARD_IMG_BASE = 'https://raw.githubusercontent.com/music/test/main/digimon cards';
+// [Opus変更] ユーザの実リポジトリ（tayu02/test, main, 直下の「digimon cards」フォルダ）の絶対URL。
+//   GitHub Pages でもローカルでも、HTMLをどこで開いても画像が解決する。
+//   ・別リポジトリに移す場合は tayu02/test の部分を変更。
+//   ・もし index.html と画像を必ず一緒に置く運用なら、相対パス 'digimon cards' でも可。
+const CARD_IMG_BASE = 'https://raw.githubusercontent.com/tayu02/test/main/digimon cards';
 
 // カードID → 収録フォルダ名（GitHubのフォルダ構成に対応）。未知の接頭辞は null。
 function _cardImgFolder(id) {
