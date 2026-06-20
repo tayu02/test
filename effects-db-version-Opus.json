@@ -2,11 +2,11 @@
   "_meta": {
     "version": 1,
     "description": "デジモンカード効果DB（事前コンパイル済み効果データ）。エントリがあるカードはテキスト解析を使わずこのデータで確定動作する。書式は『効果データ方式移行指示書.md』参照。P1で「基本ベルゼ」デッキ（ST-14基軸）を収録。",
-    "updated": "2026-06-19",
+    "updated": "2026-06-20",
     "_p2_note": "P2でOpusが原文照合し確定したカードを追加（_verified:true）。条件付き25枚を手動補完して確定（Lv.7条件4枚は表現不可のため差し戻し）。",
     "_provenance": "このファイルは Fable5（15枚・_memoなし）＋ Opus（42枚・_memoに(Opus)）の混在。ファイル名のversion-Opusは『Opusが改変した作業版』の意味で、全エントリがOpus作という意味ではない。元のFable5版は別途 effects-db.json（無印）。",
     "_p2_audit": "P2(Opus): 既存ドラフト23枚を原文照合監査。忠実かつ完全な2 base（P-190登場時draw1 / BT9-070進化時mill3）を昇格。残21は条件取りこぼし/遅延の即時化/条件誤付着/ブロック欠落のため意図的に保留（draft据置）。詳細は draft-audit-version-Opus.md。parallel(-P1等)はエンジンがbase idへフォールバックするため base のみ登録。",
-    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。 / 第12弾＝「進化時/登場時 相手1体の進化元をN枚破棄」5 base（trash_source初使用）：ST2-09(進化時・下2)・BT1-043(進化時・下4)・BT8-022(登場時・上1)・EX1-012(登場時・下1)・P-003(登場時・下1)。全て進化元/セキュリティ無し＝主効果のみで全ブロック被覆。p.from=top/bottom・p.count=破棄枚数・対象は進化元保持(stack>0)の相手1体(複数候補picker/0体不発)。検証=test_b2_trashsource-version-Opus.js。確定171→176。 / 第13弾＝『完全被覆できる残り』3 base：P-079(登場時・赤テイマー条件→DP3000以下消滅)・P-082(登場時・緑テイマー条件→レスト)・P-131(登場時レスト＋進化元static『自分のターンDP+2000』)。条件はexists、dpMaxはgetDP、staticはisMyTurn恒常。無条件クリーン札は枯渇しつつあり、以降は条件付/継承を伴う札が中心。検証=test_b2_batch13-version-Opus.js。確定176→179。 / 第14弾＝『現op完結の多様な5パターン』8 base：BT1-036(登場時 自分1体activate)・BT3-025(進化時 Lv.4以下自分1体activate)・ST1-08/BT7-010(進化時 自分1体DP+N/このターン)・BT5-011(進化時 他の自分1体DP+3000)・BT5-055(消滅時 レスト相手をデッキ下bounce＝進化元自動破棄)・P-028(登場時 セキュリティ枚数で条件分岐 draw/memory・2ブロック)。新規活用op=activate(対象選択)/dp_mod(selector)/bounce(rested+deck_bottom)/zoneCount(security)。検証=test_b2_batch14-version-Opus.js。確定179→186。 ※方針:op追加で量産可能な型(コスト払い『〜することで』・KW/無進化元フィルタ・N体まで・多型・satk対他/他者)はB1として後回し、現op完結の希少多様型を優先。 / 第15弾＝『現op完結の希少3パターン』3 base：BT2-017(進化時 赤テイマー条件→DP3000以下消滅 ＋ 進化元static[自分ターン∧相手トラッシュ5枚以上]DP+1000)・EX2-020(登場時 セキュリティ<=3∧李小春存在→リカバリー+1・2条件AND)・BT3-041(アタック時 セキュリティ<=3→自トラッシュの黄デジモンをセキュリティ上へ・move)。新規活用=静的継承のzoneCount条件/exists nameContains/recovery条件/move(trash→security_top)。検証=test_b2_batch15-version-Opus.js。確定186→189。 / 第16弾＝【B1解禁】selfSource条件をエンジン追加し、進化ライン札を解禁。BT5-010(進化元「アグモン」→memory+1 ＋静的グレイモン/オメガモンDP+2000)・BT5-015(進化元メタルグレイモン含む→DP4000以下消滅 ＋静的DP+2000)・BT5-024(進化元「ガブモン」→memory+1 ＋静的両ターンDP+1000)。selfSource={nameIs(完全一致)/nameContains(部分一致)/type/featureAny...}=inst.stackをedbCardMatchesFilterで照合。既存entry未使用＝回帰85/0不変を確認。『進化元に〜がある』系は約120枚が今後解禁可能。検証=test_b2_batch16-version-Opus.js。確定189→192。",
+    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。 / 第12弾＝「進化時/登場時 相手1体の進化元をN枚破棄」5 base（trash_source初使用）：ST2-09(進化時・下2)・BT1-043(進化時・下4)・BT8-022(登場時・上1)・EX1-012(登場時・下1)・P-003(登場時・下1)。全て進化元/セキュリティ無し＝主効果のみで全ブロック被覆。p.from=top/bottom・p.count=破棄枚数・対象は進化元保持(stack>0)の相手1体(複数候補picker/0体不発)。検証=test_b2_trashsource-version-Opus.js。確定171→176。 / 第13弾＝『完全被覆できる残り』3 base：P-079(登場時・赤テイマー条件→DP3000以下消滅)・P-082(登場時・緑テイマー条件→レスト)・P-131(登場時レスト＋進化元static『自分のターンDP+2000』)。条件はexists、dpMaxはgetDP、staticはisMyTurn恒常。無条件クリーン札は枯渇しつつあり、以降は条件付/継承を伴う札が中心。検証=test_b2_batch13-version-Opus.js。確定176→179。 / 第14弾＝『現op完結の多様な5パターン』8 base：BT1-036(登場時 自分1体activate)・BT3-025(進化時 Lv.4以下自分1体activate)・ST1-08/BT7-010(進化時 自分1体DP+N/このターン)・BT5-011(進化時 他の自分1体DP+3000)・BT5-055(消滅時 レスト相手をデッキ下bounce＝進化元自動破棄)・P-028(登場時 セキュリティ枚数で条件分岐 draw/memory・2ブロック)。新規活用op=activate(対象選択)/dp_mod(selector)/bounce(rested+deck_bottom)/zoneCount(security)。検証=test_b2_batch14-version-Opus.js。確定179→186。 ※方針:op追加で量産可能な型(コスト払い『〜することで』・KW/無進化元フィルタ・N体まで・多型・satk対他/他者)はB1として後回し、現op完結の希少多様型を優先。 / 第15弾＝『現op完結の希少3パターン』3 base：BT2-017(進化時 赤テイマー条件→DP3000以下消滅 ＋ 進化元static[自分ターン∧相手トラッシュ5枚以上]DP+1000)・EX2-020(登場時 セキュリティ<=3∧李小春存在→リカバリー+1・2条件AND)・BT3-041(アタック時 セキュリティ<=3→自トラッシュの黄デジモンをセキュリティ上へ・move)。新規活用=静的継承のzoneCount条件/exists nameContains/recovery条件/move(trash→security_top)。検証=test_b2_batch15-version-Opus.js。確定186→189。 / 第16弾＝【B1解禁】selfSource条件をエンジン追加し、進化ライン札を解禁。BT5-010(進化元「アグモン」→memory+1 ＋静的グレイモン/オメガモンDP+2000)・BT5-015(進化元メタルグレイモン含む→DP4000以下消滅 ＋静的DP+2000)・BT5-024(進化元「ガブモン」→memory+1 ＋静的両ターンDP+1000)。selfSource={nameIs(完全一致)/nameContains(部分一致)/type/featureAny...}=inst.stackをedbCardMatchesFilterで照合。既存entry未使用＝回帰85/0不変を確認。『進化元に〜がある』系は約120枚が今後解禁可能。検証=test_b2_batch16-version-Opus.js。確定189→192。 / 第17弾＝『現op完結の希少3パターン』10 base：①ドロー後に手札破棄(loot) BT4-079/ST16-02(登場時1draw1discard)・BT4-083(消滅時2draw1discard)・BT7-069(消滅時3draw2discard)＝draw→discard_hand逐次。②相手DP-N(このターン) BT1-062(-8000)/BT1-055(-3000)/BT5-042(-4000)/BT5-039(消滅時-3000)/ST3-11(アタック時-4000)＝dp_mod負値・相手selector。③BT7-052(進化時 自身DP+5000/このターン＋消滅時memory+2・2ブロック)。新規活用=discard_hand/dp_mod負値・相手/dp_mod自身。検証=test_b2_batch17-version-Opus.js。確定192→202。 / 第18弾＝現op希少3パターン10枚：①dig(reveal_deck_top→select_from_revealed→dispose_revealed) ST4-03/BT12-045(緑デジモンをhand/残りデッキ下)・ST15-04(黒カード/残り破棄)・BT3-047(Lv4-5デジモン)・EX3-003(特徴竜デジモン)。②条件付相手DP減 BT1-054(memory>=3→-2000)/BT3-042(sec<=3→-6000)/BT4-041(-4000)/BT4-044(-3000)。③BT1-061(相手2体DP-3000・count:2)。新規活用=reveal_deck_top/select_from_revealed(upTo:false)/dispose_revealed/memory条件/dp_mod count:2。検証=test_b2_batch18-version-Opus.js。確定202→212。 / 第19弾【B方針＝家族解禁・コスト払い】6 base：既存のblock.cost機構(改修ゼロ)で「することで」を表現。BT4-037/BT6-041(セキュリティ破棄→相手DP-2000/-5000)・BT6-072(手札破棄→Lv4以下消滅)・BT4-078(オプション破棄→memory+1)・BT9-058/EX1-045(特定札破棄→2ドロー)。コストop=trash_security_self/discard_hand(type/filter可)。検証=test_b2_batch19-version-Opus.js。確定212→218。※『することで』系は他に多数あるが、メモリーコスト/特殊進化/付与/参照効果を含むものは別途。 / 第20弾【B方針・dig継続】8 base(改修ゼロ・既存op)：①コスト付dig BT14-042(rest_selfコスト→緑1枚)。②2連dig『AとB1枚ずつ』＝select_from_revealedを2回(残りから2回目)。BT5-007/BT5-020(名称含む×2)・BT8-058(名称+竜人型)・BT10-046(植物型+妖精型)・BT4-009/BT4-023(ハイブリッド体+色テイマー)・BT2-044(Lv5+緑テイマー)。新規確認=select消費による2連select/nameContains配列/featureContains(1要素)/featureAny『持つ』。検証=test_b2_batch20-version-Opus.js。確定218→226。",
     "_ex12073": "EX12-073「巨大肉」(白オプション・確定164枚目)を追加。cards.jsonに欠落のためカードデータはcard-overrides.jsonに新規登録(id付き=新規カード認識)。effect実行はこのEDBエントリが担う。【メイン】reveal3→特徴NSp/DS/NSo/WG/ME/VB一致1枚を手札(upTo)→残りデッキ下。「その後このカードをバトルエリアに置く」はconfirmPlayOptionのstaysInBattle判定(card._effect_text内の同文を検知)で自動配置されるためmainにplace_self_battleは入れない(入れると重複)。第2の【メイン】【ディレイ】=delay text:'メモリー+2'(次の自分メイン開始時に解決)。security=place_self_battle。複数【メイン】はedbEnqueueTriggeredが同時誘発として両方積む(順番選択モーダル)。【限界】使用条件(特徴持ちデジモン/テイマー＋育成エリア)はEDB自動判定不可＝エンジンのオプション使用ゲートは色のみ判定し強制使用可。ソロで自己判定する前提。検証=test_ex12073-version-Opus.js 7/0(reveal/staysInBattle重複なし/delay/security)。",
     "_engine_fixes_opus": "第3-4セッション(Opus)でv5 HTMLに2件のエンジン修正を適用(いずれも実証再現→修正→回帰85/0)。①ターン終了バグ: checkTurnEnd()のモーダル閉分岐がeffectQueueの残りを確認せず300ms後にendMyTurnをスケジュール→同時誘発で片方処理後にメモリーが渡ると残り効果が落ちる。修正=保留条件にqueueBusy(effectQueue.length>0||effectQueueRunning||_edbBusy||_simultaneousEffects残)を追加し、キューが空くまでpendingTurnEndで保留(processEffectQueue/closeModalが空時に発火)。検証=test_turnend_bug-version-Opus.js 5/0(デッドロック反証込み)。②EDBオプションsecurity不発: triggerEffect('セキュリティ効果')が(a)EDB_TRIGGER_JP未マップで'security'に変換されず(b)edbEnqueueTriggeredがfx.effectsのみ読みfx.securityを無視→全EDBオプションのsecurity:[]ブロックが皆無発火だった(ST1-16等既存も含む)。修正=(a)EDB_TRIGGER_JPに'セキュリティ効果':'security'追加(b)triggerEffectで_edbEv==='security'時にfx.securityをedbEnqueueTriggeredで別途ディスパッチ。検証=ST1-16/EX12-073両方のsecurityが発火確認。③実セキュリティフリップ未発火(実証修正): 実機でST1-16/EX12-073/BT9-095をセキュリティアタックで公開しても効果が出ずトラッシュ直行と報告(ユーザ実証)。原因=doSecurityCheckChainのオプション分岐が公開カードをoppTrashへ送りfireSpecialTrigger('onSecurityBattle')を撃つだけで、公開オプション自身の'security'ブロックを一切解決していなかった(triggerEffect('セキュリティ効果')経由とは別経路)。修正=オプション公開時、EDB登録済み(fx.security有)なら『所有者(守備側)視点』で自動解決する。具体的には_securitySwapSides()でG.my*↔G.opp*の参照を一時入替→triggerEffect(secInst,'セキュリティ効果')→_afterSecuritySettles()で効果キュー/モーダルが落ち着くのを待ち視点を復元してからチェーン継続。これにより『このカードをバトルエリアに置く』(place_self_battleはmyBattleArea固定)→守備側の場へ、『相手のデジモン消滅』(side:'opp')→攻撃側を対象、と正しく解決される。EDB未登録オプションは_parsed_securityがaction:'unknown'等で不安定なため従来どおりトラッシュのみ(=securityを動かすにはEDB登録が必要)。検証=test_security_flip-version-Opus.js 6/0(EX12-073→守備側場/攻撃側不干渉/ST1-16→攻撃側消滅/通常デジモン回帰)。【ダブルモード注意】G=GD[activePlayer]のため入替は一時的にGD[active]の配列も変えるがsettleコールバックで必ず復元(net-zero)。 【限界】memoryは符号付き単一ゲージで側概念が配列と異なるため入替対象外＝security内でmemory/satkを操作するカード(ST2-13等)はフリップ時に攻撃側視点で解決され得る。消滅/配置/draw/recovery/bounce/devolve/moveは入替済配列で正しい。 / [B1] edbCheckConditionに selfSource 条件を追加(自分の進化元stackに名称/特徴一致カードがあるか)。既存挙動不変(新規entryのみ作用)・回帰85/0維持。HTMLに直接実装(edb_module.jsは本環境に無し)。validatorのKNOWN_COND_KEYSにも追加。",
     "_bt9095": "BT9-095「ガイアフォースZERO」(赤オプション・確定165枚目)を追加。【メイン】DP13000以下の相手デジモン1体消滅。security=相手デジモン1体消滅。実機でフリップ未発火と報告された3枚(ST1-16/EX12-073/BT9-095)のうちBT9-095のみEDB未登録だったため追加。【手動】使用コスト-2(X抗体進化元条件)/その後グレイモン名称デジモンでアタック=opが無く未対応。",
@@ -5673,6 +5673,1097 @@
           "target": "self",
           "value": 1000
         }
+      }
+    ]
+  },
+  "BT4-079": {
+    "_name": "ラブラモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時1ドロー。その後、自分の手札を1枚破棄する。」。on_play で draw(1)→discard_hand(1)。『その後』=actions逐次。discard_hand=自分の手札を選んで破棄(mandatory・引いた直後なので必ず実行可)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          },
+          {
+            "op": "discard_hand",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "ST16-02": {
+    "_name": "エレキモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時1ドロー。その後、自分の手札を1枚破棄する。」。on_play で draw(1)→discard_hand(1)。『その後』=actions逐次。discard_hand=自分の手札を選んで破棄(mandatory・引いた直後なので必ず実行可)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          },
+          {
+            "op": "discard_hand",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-083": {
+    "_name": "ケルベロモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「消滅時2ドロー。その後、自分の手札を1枚破棄する。」。on_destroy で draw(2)→discard_hand(1)。『その後』=actions逐次。discard_hand=自分の手札を選んで破棄(mandatory・引いた直後なので必ず実行可)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          },
+          {
+            "op": "discard_hand",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT7-069": {
+    "_name": "アイズモン：スキャッターモード",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「消滅時3ドロー。その後、自分の手札を2枚破棄する。」。on_destroy で draw(3)→discard_hand(2)。『その後』=actions逐次。discard_hand=自分の手札を選んで破棄(mandatory・引いた直後なので必ず実行可)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 3
+          },
+          {
+            "op": "discard_hand",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-062": {
+    "_name": "スラッシュエンジェモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「進化時このターンの間、相手のデジモン1体をDP-8000。」。on_evolve で相手デジモン1体をDP-8000（このターンの間＝tempDP一時減）。dp_mod selector=opp/battle/デジモン/count:1, value:-8000。DP減のみ（消滅ではない）。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -8000
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-055": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時このターンの間、相手のデジモン1体のDPを-3000する。」。on_play で相手デジモン1体をDP-3000（このターンの間＝tempDP一時減）。dp_mod selector=opp/battle/デジモン/count:1, value:-3000。DP減のみ（消滅ではない）。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -3000
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-042": {
+    "_name": "ナイトモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時このターンの間、相手のデジモン1体のDPを-4000する。」。on_play で相手デジモン1体をDP-4000（このターンの間＝tempDP一時減）。dp_mod selector=opp/battle/デジモン/count:1, value:-4000。DP減のみ（消滅ではない）。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -4000
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-039": {
+    "_name": "シューティングスターモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「消滅時このターンの間、相手のデジモン1体のDPを-3000する。」。on_destroy で相手デジモン1体をDP-3000（このターンの間＝tempDP一時減）。dp_mod selector=opp/battle/デジモン/count:1, value:-3000。DP減のみ（消滅ではない）。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -3000
+          }
+        ]
+      }
+    ]
+  },
+  "ST3-11": {
+    "_name": "セラフィモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「アタック時このターンの間、相手のデジモン1体のDPを-4000する。」。on_attack で相手デジモン1体をDP-4000（このターンの間＝tempDP一時減）。dp_mod selector=opp/battle/デジモン/count:1, value:-4000。DP減のみ（消滅ではない）。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -4000
+          }
+        ]
+      }
+    ]
+  },
+  "BT7-052": {
+    "_name": "サーベルレオモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「進化時このターンの間、このデジモンのDPを+5000する。消滅時メモリーを+2する。」。2トリガを2ブロックで：①on_evolve dp_mod(self・selector省略=自身, value:+5000・tempDP=このターン)②on_destroy memory+2。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": 5000
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST4-03": {
+    "_name": "テントモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus・dig系) ※原文照合済「登場時自分のデッキの上から1枚オープンする。そのカードが緑のデジモンカードなら手札に加える。残ったカードはデッキの下に戻す。」。on_play で reveal_deck_top(1)→select_from_revealed(条件一致1枚をhandへ・upTo:false=一致あれば取得必須/無ければ0)→dispose_revealed(残りをdeck_bottom)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 1
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "緑"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT12-045": {
+    "_name": "エビバーガモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus・dig系) ※原文照合済「登場時自分のデッキの上から1枚オープンする。そのカードが緑のデジモンカードなら手札に加える。残りはデッキの下に戻す。」。on_play で reveal_deck_top(1)→select_from_revealed(条件一致1枚をhandへ・upTo:false=一致あれば取得必須/無ければ0)→dispose_revealed(残りをdeck_bottom)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 1
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "緑"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "ST15-04": {
+    "_name": "ソーラーモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus・dig系) ※原文照合済「登場時自分のデッキの上から1枚オープンする。そのカードが黒のカードなら手札に加える。残りは破棄する。」。on_play で reveal_deck_top(1)→select_from_revealed(条件一致1枚をhandへ・upTo:false=一致あれば取得必須/無ければ0)→dispose_revealed(残りをtrash)。「黒のカード」=型不問。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 1
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "colorAny": [
+                  "黒"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "trash"
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-047": {
+    "_name": "ワームモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus・dig系) ※原文照合済「消滅時自分のデッキの上から3枚オープンする。その中のLv.4かLv.5のデジモンカード1枚を手札に加える。残りは好きな順番でデッキの下に戻す。」。on_destroy で reveal_deck_top(3)→select_from_revealed(条件一致1枚をhandへ・upTo:false=一致あれば取得必須/無ければ0)→dispose_revealed(残りをdeck_bottom)。※「好きな順番でデッキの下に戻す」の順序選択は非対応＝デッキ下行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "lvMin": 4,
+                "lvMax": 5
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "EX3-003": {
+    "_name": "スナリザモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus・dig系) ※原文照合済「アタック時自分のデッキの上から3枚オープンする。その中の特徴に「竜」を含むデジモンカード1枚を手札に加える。残りは好きな順番でデッキの下に戻す。」。on_attack で reveal_deck_top(3)→select_from_revealed(条件一致1枚をhandへ・upTo:false=一致あれば取得必須/無ければ0)→dispose_revealed(残りをdeck_bottom)。※「好きな順番でデッキの下に戻す」の順序選択は非対応＝デッキ下行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "featureContains": [
+                  "竜"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-054": {
+    "_name": "ライアモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「アタック時メモリーが3以上のとき、このターンの間、相手のデジモン1体のDPを-2000する。」。on_attack 条件付 相手デジモン1体をDP-2000（このターン＝tempDP）。dp_mod negative・opp selector。DP減のみ(消滅でない)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "memory": {
+            "op": ">=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -2000
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-042": {
+    "_name": "クラヴィスエンジェモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「アタック時自分のセキュリティが3枚以下のとき、このターンの間、相手のデジモン1体のDPを-6000する。」。on_attack 条件付 相手デジモン1体をDP-6000（このターン＝tempDP）。dp_mod negative・opp selector。DP減のみ(消滅でない)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -6000
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-041": {
+    "_name": "メイクーモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時自分のセキュリティが3枚以下のとき、このターンの間、相手のデジモン1体のDPを-4000する。」。on_play 条件付 相手デジモン1体をDP-4000（このターン＝tempDP）。dp_mod negative・opp selector。DP減のみ(消滅でない)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -4000
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-044": {
+    "_name": "ヒポグリフォモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「アタック時自分のセキュリティが3枚以下のとき、このターンの間、相手のデジモン1体のDPを-3000する。」。on_attack 条件付 相手デジモン1体をDP-3000（このターン＝tempDP）。dp_mod negative・opp selector。DP減のみ(消滅でない)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -3000
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-061": {
+    "_name": "ミスティモン",
+    "_verified": true,
+    "_memo": "P2 B2 hand-authored (Opus) ※原文照合済「登場時このターンの間、相手のデジモン2体のDPを-3000する。」。on_play 相手デジモン2体をDP-3000（このターン＝tempDP）。dp_mod negative・opp selector。DP減のみ(消滅でない)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 2
+            },
+            "value": -3000
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-037": {
+    "_name": "クダモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「登場時自分のセキュリティを上から1枚破棄することで、このターンの間、相手のデジモン1体のDPを-2000する。」。コスト=セキュリティ1枚破棄→相手1体DP-2000(このターン/tempDP)。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "trash_security_self",
+            "count": 1
+          }
+        ],
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -2000
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-041": {
+    "_name": "マンティコアモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「アタック時自分のセキュリティを上から1枚破棄することで、このターンの間、相手のデジモン1体のDPを-5000する。」。コスト=セキュリティ1枚破棄→相手1体DP-5000(このターン)。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "cost": [
+          {
+            "op": "trash_security_self",
+            "count": 1
+          }
+        ],
+        "actions": [
+          {
+            "op": "dp_mod",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "value": -5000
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-072": {
+    "_name": "オーガモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「登場時自分の手札を1枚破棄することで、Lv.4以下の相手のデジモン1体を消滅させる。」。コスト=手札1枚破棄→Lv.4以下の相手1体を消滅。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 1
+          }
+        ],
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvMax": 4
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-078": {
+    "_name": "サウンドバードモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「アタック時自分の手札から、オプションカード1枚を破棄することで、メモリーを+1する。」。コスト=手札からオプション1枚破棄→メモリー+1。discard_handはtype/filterで対象限定可。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 1,
+            "type": "オプション"
+          }
+        ],
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT9-058": {
+    "_name": "ドルモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「登場時自分の手札から、特徴に「X抗体」を持つカード1枚を破棄することで、2ドロー。」。コスト=手札から特徴X抗体1枚破棄→2ドロー。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 1,
+            "filter": {
+              "featureAny": [
+                "X抗体"
+              ]
+            }
+          }
+        ],
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-045": {
+    "_name": "ハグルモン",
+    "_verified": true,
+    "_memo": "P2 B1家族【コスト払い】hand-authored (Opus) ※原文照合済「登場時自分の手札から、特徴に「マシーン型」か「サイボーグ型」を持つデジモンカード1枚を破棄することで、2ドロー。」。コスト=手札からマシーン型/サイボーグ型デジモン1枚破棄→2ドロー。 『することで』=block.cost（既存コスト機構・edbRunBlockがedbCanPayCosts→edbOpenCostConfirmで任意確認→未払いなら不発）。エンジン改修なし(既存ST14-11等で実績)。進化元/セキュリティ無し＝全ブロック被覆。parallelはbaseへ自動フォールバック。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 1,
+            "type": "デジモン",
+            "filter": {
+              "featureAny": [
+                "マシーン型",
+                "サイボーグ型"
+              ]
+            }
+          }
+        ],
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-042": {
+    "_name": "クネモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・コスト付dig) ※原文照合済「登場時このデジモンをレストさせることで、上3枚オープン→緑のカード1枚を手札→残りデッキ下」。cost=rest_self（既存コスト機構）＋actions=reveal_deck_top(3)→select_from_revealed(緑/upTo:false)→dispose_revealed(deck_bottom)。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "rest_self"
+          }
+        ],
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "colorAny": [
+                  "緑"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-007": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上3枚→『グレイモン』含むデジモンと『オメガモン』含むデジモン1枚ずつを手札」。名称含む×2(nameContainsは配列OR)。 reveal_deck_top(3)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "グレイモン"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "オメガモン"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-020": {
+    "_name": "ガブモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上3枚→『ガルルモン』含むデジモンと『オメガモン』含むデジモン1枚ずつ」。名称含む×2。 reveal_deck_top(3)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "ガルルモン"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "オメガモン"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT8-058": {
+    "_name": "アグモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上4枚→『グレイモン』含むカードと特徴『竜人型』を持つカード1枚ずつ」。名称含む＋特徴『持つ』=featureAny。型不問(カード)。 reveal_deck_top(4)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 4
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "nameContains": [
+                  "グレイモン"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "featureAny": [
+                  "竜人型"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT10-046": {
+    "_name": "パルモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上4枚→特徴『植物型』含むカードと特徴『妖精型』持つカード1枚ずつ」。特徴『含む』=featureContains(1要素)＋『持つ』=featureAny。 reveal_deck_top(4)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 4
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "featureContains": [
+                  "植物型"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "filter": {
+                "featureAny": [
+                  "妖精型"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-009": {
+    "_name": "フレイモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上3枚→特徴『ハイブリッド体』持つデジモンと赤テイマー1枚ずつ」。特徴持つデジモン＋色付テイマー(type+colorAny)。 reveal_deck_top(3)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "featureAny": [
+                  "ハイブリッド体"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "テイマー",
+              "filter": {
+                "colorAny": [
+                  "赤"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-023": {
+    "_name": "ストラビモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「登場時 上3枚→特徴『ハイブリッド体』持つデジモンと青テイマー1枚ずつ」。同型(青)。 reveal_deck_top(3)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "featureAny": [
+                  "ハイブリッド体"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "テイマー",
+              "filter": {
+                "colorAny": [
+                  "青"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-044": {
+    "_name": "ティラノモン",
+    "_verified": true,
+    "_memo": "P2 B方針 hand-authored (Opus・2連dig) ※原文照合済「進化時 上3枚→Lv.5デジモンと緑テイマー1枚ずつ」。Lv指定デジモン(lvIs)＋色付テイマー。 reveal_deck_top(3)→select_from_revealed×2（残りから2回目を選択・各upTo:false=一致あれば取得）→dispose_revealed(deck_bottom)。「好きな順番でデッキ下」の順序選択は非対応＝最下層行きで実質影響軽微。進化元/セキュリティ無し＝全ブロック被覆。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 5
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "select_from_revealed",
+            "to": "hand",
+            "selector": {
+              "type": "テイマー",
+              "filter": {
+                "colorAny": [
+                  "緑"
+                ]
+              },
+              "count": 1,
+              "upTo": false
+            }
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "deck_bottom"
+          }
+        ]
       }
     ]
   }
