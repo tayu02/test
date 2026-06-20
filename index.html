@@ -1612,7 +1612,7 @@ let G_cardDBLoaded = false;
 //   ・末尾の「digimon cards」フォルダまでを指定（その下の AD、RB / BT1~5 等はコードが自動で付けます）
 //   ・空白や「、」などの記号はそのまま書いてOK（コード側で自動URLエンコードします）
 //   ・'' にすると画像URL生成OFF（cards.jsonのimage_urlにフォールバック＝従来動作）
-const CARD_IMG_BASE = 'https://raw.githubusercontent.com/music/test/main/digimon cards';
+const CARD_IMG_BASE = 'https://raw.githubusercontent.com/tayu02/test/main/digimon cards';
 
 // カードID → 収録フォルダ名（GitHubのフォルダ構成に対応）。未知の接頭辞は null。
 function _cardImgFolder(id) {
@@ -1687,6 +1687,8 @@ function convertRawCard(c) {
     }
   }
   out.img = cardImgUrl(c.id) || c.image_url || '';
+  // [Opus追加] 画像読込失敗時の実行時フォールバック先（cards.jsonのimage_url）。imgと異なる時のみ保持。
+  out.imageFallback = (c.image_url && c.image_url !== out.img) ? c.image_url : '';
   return out;
 }
 
@@ -1804,6 +1806,7 @@ function convertDBCard(dbCard) {
     _parsed_evolved: buildParsedEffects(evolvedText),       // 構造化済み進化元効果
     _parsed_security: buildParsedEffects(securityText),     // 構造化済みセキュリティ効果
     img: dbCard.img || '',                  // カード画像URL
+    imageFallback: dbCard.imageFallback || '',  // [Opus追加] 読込失敗時のフォールバック(cards.json image_url)
     _converted: true,
   };
 }
@@ -16865,10 +16868,16 @@ var FILM = {
   },
   // 盤面カードに差し込む<img>タグ。読み込み失敗時はfilm-imgedを外して従来表示へ戻す
   imgTag(cardId) {
-    const u = this.imgUrl(cardId);
+    const c = (typeof getCard === 'function') ? getCard(cardId) : null;
+    const u = (c && c.img) ? c.img : '';
     if (!u) return '';
-    return `<img class="film-card-img" src="${u}" loading="lazy" referrerpolicy="no-referrer" draggable="false"` +
-      ` onerror="const p=this.closest('.film-imged');if(p)p.classList.remove('film-imged');this.remove()">`;
+    const fb = (c && c.imageFallback) ? c.imageFallback : '';
+    const revert = "const p=this.closest('.film-imged');if(p)p.classList.remove('film-imged');this.remove()";
+    // 読込失敗時：まずcards.jsonのimage_urlへ1回だけ切替、それも失敗なら従来のテキスト表示へ戻す
+    const onerr = fb
+      ? `if(!this.dataset.fb){this.dataset.fb='1';this.src='${fb}';return;}${revert}`
+      : revert;
+    return `<img class="film-card-img" src="${u}" loading="lazy" referrerpolicy="no-referrer" draggable="false" onerror="${onerr}">`;
   },
 
   toggle() { this.set(!this.on); },
