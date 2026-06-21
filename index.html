@@ -17364,7 +17364,13 @@ function edbSelectCandidates(sel, inst, ctx) {
       if (f) {
         if (f.dpMax != null && getDP(i) > f.dpMax) continue;
         if (f.dpMin != null && getDP(i) < f.dpMin) continue;
-        const f2 = { ...f }; delete f2.dpMax; delete f2.dpMin;
+        if (f.hasKeyword) { // [Opus拡張/P2-B1] 対象がキーワードを持つか（「ブロッカーを持つ相手のデジモン」等）。instがあるここでのみ判定可
+          const _kws = Array.isArray(f.hasKeyword) ? f.hasKeyword : [f.hasKeyword];
+          if (!_kws.some(k => hasKeyword(i, k))) continue;
+        }
+        if (f.noSource && (i.stack?.length || 0) > 0) continue; // [Opus拡張/P2-B1] 進化元を持たない相手
+        if (f.hasSource && (i.stack?.length || 0) === 0) continue; // 進化元を持つ相手
+        const f2 = { ...f }; delete f2.dpMax; delete f2.dpMin; delete f2.hasKeyword; delete f2.noSource; delete f2.hasSource;
         if (!edbCardMatchesFilter(c, f2)) continue;
       }
       items.push({ kind:'inst', inst:i, side, label: `${c?.name||'?'}${c?.level?` Lv.${c.level}`:''}${i.isRested?'（レスト）':''}` });
@@ -17855,7 +17861,11 @@ const EDB_OPS = {
   },
 
   'dp_mod': (p, ctx, next) => {
-    const value = p.value || 0;
+    let value = p.value || 0;
+    if (p.perCount) { // [Opus拡張/P2-B1] 「(対象)1体ごとに」＝value × perCount該当数
+      const _n = edbSelectCandidates(p.perCount, ctx.inst, ctx).filter(it => it.kind === 'inst').length;
+      value = value * _n;
+    }
     const applyTo = (i) => { i.tempDP = (i.tempDP||0) + value; log(`　→ ${getCard(i.cardId)?.name} DP${value>0?'+':''}${value}`, 'system'); };
     if (!p.selector || p.selector === 'self') { if (ctx.inst) applyTo(ctx.inst); render(); next(); return; }
     const items = edbSelectCandidates(p.selector, ctx.inst, ctx).filter(it => it.kind === 'inst');
