@@ -17286,6 +17286,10 @@ function edbCheckCondition(cond, inst) {
       const _st = (inst && inst.stack) || [];
       return _st.some(id => edbCardMatchesFilter(getCard(id), cond.selfSource));
     }
+    if (cond.attackTarget) {  // [Opus追加/P2-B1] このデジモンのアタック対象（'player'/'digimon'）。executeAttackが対象記録後にアタック時効果を発火するので参照可
+      const _tgt = (inst && inst._attackTarget) || G._attackTarget;
+      return !!_tgt && _tgt.type === cond.attackTarget;
+    }
     if (cond.selfKeyword) return !!inst && hasKeyword(inst, cond.selfKeyword);  // [Opus追加/P2] 保持者が指定キーワードを持つか
     if (cond.isMyTurn != null) return cond.isMyTurn === !!G.isMyTurn;
     if (cond.memory) return edbCompare(-G.memory, cond.memory.op || '>=', cond.memory.value);
@@ -17990,13 +17994,23 @@ const EDB_OPS = {
   },
 
   'grant_keyword': (p, ctx, next) => {
-    const targets = (!p.selector || p.selector === 'self') ? (ctx.inst ? [ctx.inst] : [])
-      : edbSelectCandidates(p.selector, ctx.inst, ctx).filter(it => it.kind === 'inst').map(it => it.inst);
-    for (const t of targets) {
-      for (const k of (p.keywords || [])) if (!t.tempKeywords.includes(k)) t.tempKeywords.push(k);
-      log(`　→ ${getCard(t.cardId)?.name} に【${(p.keywords||[]).join('・')}】を付与（ターン終了まで）`, 'important');
-    }
-    render(); next();
+    // [Opus拡張/P2-B1] selector+count対応：count無し=全候補、count指定で件数pickerを開く（destroyと同方式）。self/未指定は自身。tempKeywords付与は次の自分のアクティブフェイズで消去（=「このターン」「次の相手ターン終了まで」を自分ターン発動で近似）
+    const apply = (instList) => {
+      for (const t of instList) {
+        for (const k of (p.keywords || [])) if (!t.tempKeywords.includes(k)) t.tempKeywords.push(k);
+        log(`　→ ${getCard(t.cardId)?.name} に【${(p.keywords||[]).join('・')}】を付与`, 'important');
+      }
+      render(); next();
+    };
+    if (!p.selector || p.selector === 'self') { apply(ctx.inst ? [ctx.inst] : []); return; }
+    const sel = { ...p.selector };
+    const count = sel.count || 0;
+    const items = edbSelectCandidates(sel, ctx.inst, ctx).filter(it => it.kind === 'inst');
+    if (items.length === 0) { next(); return; }
+    if (!count || (items.length <= count && !sel.upTo)) { apply(items.map(it => it.inst)); return; }
+    edbOpenPick('キーワードを付与する対象', items, { count: Math.min(count, items.length), skippable: !!sel.upTo, note: edbDescribeOps([p]) },
+      (seld) => apply(seld.map(it => it.inst)),
+      () => { next(); });
   },
 
   'grant_status': (p, ctx, next) => {
