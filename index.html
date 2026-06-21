@@ -5396,9 +5396,13 @@ function hasKeyword(inst, kw) {
   // effects-db: 静的キーワード付与
   try {
     for (const g of edbActiveGrants('keyword')) {
-      if ((g.grant.target === 'self' || !g.grant.target) && g.inst.instanceId === inst.instanceId) {
-        if ((g.grant.keywords||[]).some(k => k === jpName || k === kw)) return true;
+      const _tgt = g.grant.target;
+      let _ap = false;
+      if (_tgt === 'self' || !_tgt) _ap = (g.inst.instanceId === inst.instanceId);
+      else if (typeof _tgt === 'object') { // [Opus拡張/P2-B1] targetがselectorの静的付与（「自分のデジモン全ては《X》を得る」等）：instが付与者から見た対象集合に含まれるか
+        try { _ap = edbSelectCandidates(_tgt, g.inst, { inst: g.inst }).some(it => it.kind === 'inst' && it.inst.instanceId === inst.instanceId); } catch(e) { _ap = false; }
       }
+      if (_ap && (g.grant.keywords||[]).some(k => k === jpName || k === kw)) return true;
     }
   } catch(e) {}
   const card = getCard(inst.cardId);
