@@ -6768,8 +6768,9 @@ function triggerEffect(inst, trigger, battleArea, trash) {
       const hasNormalTrigger = block.triggers.length > 0 && block.triggers.includes(trigger);
       const hasSpecialTrigger = block.specialTrigger && block.specialTrigger === trigger;
       if (!hasNormalTrigger && !hasSpecialTrigger) continue;
-      // ターン1回制限
-      if (block.limit === 'ターン1回' && inst.subTriggerUsed) continue;
+      // ターン1回制限（'ターン1回'/'once_per_turn'両受理＝既存EDB 25件は'once_per_turn'で書かれていたが従来は無効化されていた既存不具合の救済）
+      const _isOnce = (block.limit === 'ターン1回' || block.limit === 'once_per_turn');
+      if (_isOnce && inst.subTriggerUsed) continue;
       if (block.keywords.length > 0) {
         log(`　→ キーワード宣言: 【${block.keywords.join('・')}】`,"system");
       }
@@ -6781,7 +6782,7 @@ function triggerEffect(inst, trigger, battleArea, trash) {
         inst, actions: block.actions || [], actionText: block.actionText,
         root: block.root || null,
       });
-      if (block.limit === 'ターン1回') inst.subTriggerUsed = true;
+      if (block.limit === 'ターン1回' || block.limit === 'once_per_turn') inst.subTriggerUsed = true;
   }
   if (_matchedBlocks.length > 0) enqueueSimultaneous(_matchedBlocks);
 
@@ -8980,7 +8981,7 @@ function collectSpecialTriggerEffects(triggerId, sourceInst=null, playedCardName
       if (!inTrash) {
         if (block.turnMod === '相手のターン' && G.isMyTurn) continue;
         if (block.turnMod === '自分のターン' && !G.isMyTurn) continue;
-        if (block.limit === 'ターン1回' && inst.subTriggerUsed) continue;
+        if ((block.limit === 'ターン1回' || block.limit === 'once_per_turn') && inst.subTriggerUsed) continue;
       }
       if (triggerId === 'onSpecificCardPlayed' && playedCardName) {
         const targetNames = [...block.actionText.matchAll(/「([^」]+)」(?=(?:か「[^」]+」)*が登場したとき)/g)].map(m=>m[1]);
@@ -9016,7 +9017,7 @@ function collectSpecialTriggerEffects(triggerId, sourceInst=null, playedCardName
         root: block.root || null,
         block,
       });
-      if (!inTrash && block.limit === 'ターン1回') inst.subTriggerUsed = true;
+      if (!inTrash && (block.limit === 'ターン1回' || block.limit === 'once_per_turn')) inst.subTriggerUsed = true;
     }
 
     // 進化元効果（_parsed_evolved）も検索
@@ -9033,7 +9034,7 @@ function collectSpecialTriggerEffects(triggerId, sourceInst=null, playedCardName
           if (block.specialTrigger !== triggerId) continue;
           if (block.turnMod === '相手のターン' && G.isMyTurn) continue;
           if (block.turnMod === '自分のターン' && !G.isMyTurn) continue;
-          if (block.limit === 'ターン1回' && inst.subTriggerUsed) continue;
+          if ((block.limit === 'ターン1回' || block.limit === 'once_per_turn') && inst.subTriggerUsed) continue;
           // 進化元の効果もinstは1番上のデジモン
           collected.push({
             label: `${srcCard.name}【進化元】`,
@@ -9043,7 +9044,7 @@ function collectSpecialTriggerEffects(triggerId, sourceInst=null, playedCardName
             root: block.root || null,
             block,
           });
-          if (block.limit === 'ターン1回') inst.subTriggerUsed = true;
+          if (block.limit === 'ターン1回' || block.limit === 'once_per_turn') inst.subTriggerUsed = true;
         }
       }
     }
@@ -17338,11 +17339,13 @@ function edbCardMatchesFilter(c, f) {
   if (f.lvMin != null && (c.level == null || c.level < f.lvMin)) return false;
   if (f.costMax != null && (c.cost == null || c.cost > f.costMax)) return false;
   if (f.costMin != null && (c.cost == null || c.cost < f.costMin)) return false;
+  if (f.costIn  && !(c.cost != null && f.costIn.includes(c.cost))) return false;  // [Opus追加/P2-B1] コスト複数値OR（例:「コスト1か7」）
   if (f.featureAll && !f.featureAll.every(x => (c.features||[]).includes(x))) return false;
   if (f.featureAny && !f.featureAny.some(x => (c.features||[]).includes(x))) return false;
   if (f.featureContains && !(c.features||[]).some(x => String(x).includes(f.featureContains))) return false;  // [Opus追加/P2] 特徴の部分一致
   if (f.nameIs && !(c.name === f.nameIs || cardNameMatches(c.name||'', f.nameIs))) return false;
   if (f.nameContains && !f.nameContains.some(n => (c.name||'').includes(n))) return false;
+  if (f.nameExcludes && f.nameExcludes.some(n => (c.name||'').includes(n))) return false;  // [Opus追加/P2-B1] 名称「○」を含まない（「○以外」）
   if (f.textContains && !f.textContains.some(s => edbCardText(c).includes(s))) return false;
   return true;
 }
@@ -17368,9 +17371,13 @@ function edbSelectCandidates(sel, inst, ctx) {
           const _kws = Array.isArray(f.hasKeyword) ? f.hasKeyword : [f.hasKeyword];
           if (!_kws.some(k => hasKeyword(i, k))) continue;
         }
+        if (f.notHasKeyword) { // [Opus拡張/P2-B1] 「○を持たない相手」否定（hasKeywordの逆）
+          const _kws = Array.isArray(f.notHasKeyword) ? f.notHasKeyword : [f.notHasKeyword];
+          if (_kws.some(k => hasKeyword(i, k))) continue;
+        }
         if (f.noSource && (i.stack?.length || 0) > 0) continue; // [Opus拡張/P2-B1] 進化元を持たない相手
         if (f.hasSource && (i.stack?.length || 0) === 0) continue; // 進化元を持つ相手
-        const f2 = { ...f }; delete f2.dpMax; delete f2.dpMin; delete f2.hasKeyword; delete f2.noSource; delete f2.hasSource;
+        const f2 = { ...f }; delete f2.dpMax; delete f2.dpMin; delete f2.hasKeyword; delete f2.notHasKeyword; delete f2.noSource; delete f2.hasSource;
         if (!edbCardMatchesFilter(c, f2)) continue;
       }
       items.push({ kind:'inst', inst:i, side, label: `${c?.name||'?'}${c?.level?` Lv.${c.level}`:''}${i.isRested?'（レスト）':''}` });
@@ -17833,7 +17840,12 @@ const EDB_OPS = {
 
   // 基本 -------------------------------------------------
   'draw': (p, ctx, next) => {
-    const n = p.count || 1;
+    let n = p.count || 1;
+    if (p.perCount) { // [Opus拡張/P2-B1] 「(対象)N枚ごとに」＝count × ⌊該当数/perCountUnit⌋
+      const _cnt = edbSelectCandidates(p.perCount, ctx.inst, ctx).filter(it => it.kind === 'inst' || it.kind === 'card').length;
+      const unit = p.perCountUnit || 1;
+      n = n * Math.floor(_cnt / unit);
+    }
     let got = 0;
     for (let i = 0; i < n && G.myDeck.length > 0; i++) {
       G.myHand.push(G.myDeck.pop()); got++;
@@ -17843,8 +17855,14 @@ const EDB_OPS = {
   },
 
   'memory': (p, ctx, next) => {
-    gainMemory(p.value || 0);
-    log(`　→ メモリー${p.value>0?'+':''}${p.value}`, 'system');
+    let v = p.value || 0;
+    if (p.perCount) { // [Opus拡張/P2-B1] 「(対象)N枚ごとに」＝value × ⌊該当数/perCountUnit⌋ (drawと同形)
+      const _cnt = edbSelectCandidates(p.perCount, ctx.inst, ctx).filter(it => it.kind === 'inst' || it.kind === 'card').length;
+      const unit = p.perCountUnit || 1;
+      v = v * Math.floor(_cnt / unit);
+    }
+    gainMemory(v);
+    log(`　→ メモリー${v>0?'+':''}${v}`, 'system');
     renderMemory(); next();
   },
 
@@ -17932,44 +17950,65 @@ const EDB_OPS = {
   'devolve': (p, ctx, next) => {
     const sel = p.selector || { side:'opp', zone:'battle', type:'デジモン', count: 1 };
     const side = sel.side || 'opp';
-    const n = p.count || 1;
+    const n = p.count || 1;  // 退化値（例：退化1 → n=1）
+    const tgtCount = sel.count || 1;  // 対象数（例：2体まで → tgtCount=2）
+    const upTo = !!sel.upTo;
     const items = edbSelectCandidates(sel, ctx.inst, ctx).filter(it => it.kind === 'inst');
-    if (items.length === 0) { log('　→ 退化対象がいません', 'system'); ctx.failed = true; next(); return; }
-    const doDevolve = (inst) => {
+    if (items.length === 0) {
+      log('　→ 退化対象がいません', 'system');
+      if (upTo) { next(); return; } // upTo:true=任意なら無発動
+      ctx.failed = true; next(); return;
+    }
+    const doDevolveAll = (instList) => {
       const trash = side === 'opp' ? G.oppTrash : G.myTrash;
-      for (let i = 0; i < n; i++) {
-        if (!inst.stack || inst.stack.length === 0) {
-          log(`　→ 進化元がないため ${getCard(inst.cardId)?.name} は消滅`, 'important');
-          destroyDigimon(inst, side === 'opp' ? 'opp' : 'my'); break;
+      for (const inst of instList) {
+        for (let i = 0; i < n; i++) {
+          if (!inst.stack || inst.stack.length === 0) {
+            log(`　→ 進化元がないため ${getCard(inst.cardId)?.name} は消滅`, 'important');
+            destroyDigimon(inst, side === 'opp' ? 'opp' : 'my'); break;
+          }
+          trash.push(inst.cardId);
+          inst.cardId = inst.stack.pop();
+          log(`　→ 退化：${getCard(inst.cardId)?.name} に`, 'important');
         }
-        trash.push(inst.cardId);
-        inst.cardId = inst.stack.pop();
-        log(`　→ 退化：${getCard(inst.cardId)?.name} に`, 'important');
       }
       render(); next();
     };
-    if (items.length === 1) { doDevolve(items[0].inst); return; }
-    edbOpenPick(`退化${n}の対象`, items, { count:1 }, (seld) => doDevolve(seld[0].inst), () => { ctx.failed = true; next(); });
+    // 候補<=対象数 かつ upToでないなら自動全件 / それ以外はpicker
+    if (items.length <= tgtCount && !upTo) { doDevolveAll(items.map(it => it.inst)); return; }
+    edbOpenPick(`退化${n}の対象`, items, { count: Math.min(tgtCount, items.length), skippable: upTo },
+      (seld) => doDevolveAll(seld.map(it => it.inst)),
+      () => { if (upTo) next(); else { ctx.failed = true; next(); } });
   },
 
   'trash_source': (p, ctx, next) => {
     const sel = p.selector || { side:'opp', zone:'battle', type:'デジモン', count:1 };
     const side = sel.side || 'opp';
     const n = p.count || 1;
+    const tgtCount = sel.count || 1;  // [Opus拡張/P2-B1] 対象数（複数体「○○全ての進化元」用）
+    const upTo = !!sel.upTo;
     const items = edbSelectCandidates(sel, ctx.inst, ctx).filter(it => it.kind === 'inst' && (it.inst.stack||[]).length > 0);
-    if (items.length === 0) { log('　→ 進化元を持つ対象がいません', 'system'); ctx.failed = true; next(); return; }
-    const doIt = (inst) => {
+    if (items.length === 0) {
+      log('　→ 進化元を持つ対象がいません', 'system');
+      if (upTo) { next(); return; }
+      ctx.failed = true; next(); return;
+    }
+    const doAll = (instList) => {
       const trash = side === 'opp' ? G.oppTrash : G.myTrash;
       const from = p.from === 'top' ? 'top' : 'bottom';
-      for (let i = 0; i < n && inst.stack.length > 0; i++) {
-        const cId = from === 'top' ? inst.stack.pop() : inst.stack.shift();
-        trash.push(cId);
-        log(`　→ 進化元から ${getCard(cId)?.name} を破棄`, 'important');
+      for (const inst of instList) {
+        for (let i = 0; i < n && inst.stack.length > 0; i++) {
+          const cId = from === 'top' ? inst.stack.pop() : inst.stack.shift();
+          trash.push(cId);
+          log(`　→ ${getCard(inst.cardId)?.name} の進化元から ${getCard(cId)?.name} を破棄`, 'important');
+        }
       }
       render(); next();
     };
-    if (items.length === 1) { doIt(items[0].inst); return; }
-    edbOpenPick('進化元を破棄する対象', items, { count:1 }, (seld) => doIt(seld[0].inst), () => { ctx.failed = true; next(); });
+    if (items.length <= tgtCount && !upTo) { doAll(items.map(it => it.inst)); return; }
+    edbOpenPick('進化元を破棄する対象', items, { count: Math.min(tgtCount, items.length), skippable: upTo },
+      (seld) => doAll(seld.map(it => it.inst)),
+      () => { if (upTo) next(); else { ctx.failed = true; next(); } });
   },
 
   // 状態 -------------------------------------------------
@@ -18330,6 +18369,23 @@ const EDB_OPS = {
     if (ctx.inst && ctx.inst.isRested) {
       ctx.inst.isRested = false;
       log(`　→ ${ctx.sourceName} をアクティブに`, 'important');
+    }
+    render(); next();
+  },
+
+  'return_self_to_hand': (p, ctx, next) => {
+    // [Opus拡張/P2-B1] このカードを手札に戻す（オプションの「セキュリティ:メイン効果を発揮その後このカードを手札に加える」用）。
+    // セキュリティ消費時にmyTrash末尾へ積まれた直後に発火する想定。myTrashから同cardIdの最末尾を1枚抜いてmyHandへ。
+    const cId = ctx.inst && ctx.inst.cardId;
+    if (!cId) { next(); return; }
+    const idx = G.myTrash.lastIndexOf(cId);
+    if (idx >= 0) {
+      G.myTrash.splice(idx, 1);
+      G.myHand.push(cId);
+      log(`　→ ${getCard(cId)?.name} を手札に戻す`, 'important');
+    } else {
+      // 既に手札等にある場合（万一の重複呼出）→安全に何もしない
+      log(`　→ ${getCard(cId)?.name} は既に手札等にある（手札へ移動スキップ）`, 'system');
     }
     render(); next();
   },

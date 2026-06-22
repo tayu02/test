@@ -6,7 +6,7 @@
     "_p2_note": "P2でOpusが原文照合し確定したカードを追加（_verified:true）。条件付き25枚を手動補完して確定（Lv.7条件4枚は表現不可のため差し戻し）。",
     "_provenance": "このファイルは Fable5（15枚・_memoなし）＋ Opus（42枚・_memoに(Opus)）の混在。ファイル名のversion-Opusは『Opusが改変した作業版』の意味で、全エントリがOpus作という意味ではない。元のFable5版は別途 effects-db.json（無印）。",
     "_p2_audit": "P2(Opus): 既存ドラフト23枚を原文照合監査。忠実かつ完全な2 base（P-190登場時draw1 / BT9-070進化時mill3）を昇格。残21は条件取りこぼし/遅延の即時化/条件誤付着/ブロック欠落のため意図的に保留（draft据置）。詳細は draft-audit-version-Opus.md。parallel(-P1等)はエンジンがbase idへフォールバックするため base のみ登録。",
-    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。 / 第12弾＝「進化時/登場時 相手1体の進化元をN枚破棄」5 base（trash_source初使用）：ST2-09(進化時・下2)・BT1-043(進化時・下4)・BT8-022(登場時・上1)・EX1-012(登場時・下1)・P-003(登場時・下1)。全て進化元/セキュリティ無し＝主効果のみで全ブロック被覆。p.from=top/bottom・p.count=破棄枚数・対象は進化元保持(stack>0)の相手1体(複数候補picker/0体不発)。検証=test_b2_trashsource-version-Opus.js。確定171→176。 / 第13弾＝『完全被覆できる残り』3 base：P-079(登場時・赤テイマー条件→DP3000以下消滅)・P-082(登場時・緑テイマー条件→レスト)・P-131(登場時レスト＋進化元static『自分のターンDP+2000』)。条件はexists、dpMaxはgetDP、staticはisMyTurn恒常。無条件クリーン札は枯渇しつつあり、以降は条件付/継承を伴う札が中心。検証=test_b2_batch13-version-Opus.js。確定176→179。 / 第14弾＝『現op完結の多様な5パターン』8 base：BT1-036(登場時 自分1体activate)・BT3-025(進化時 Lv.4以下自分1体activate)・ST1-08/BT7-010(進化時 自分1体DP+N/このターン)・BT5-011(進化時 他の自分1体DP+3000)・BT5-055(消滅時 レスト相手をデッキ下bounce＝進化元自動破棄)・P-028(登場時 セキュリティ枚数で条件分岐 draw/memory・2ブロック)。新規活用op=activate(対象選択)/dp_mod(selector)/bounce(rested+deck_bottom)/zoneCount(security)。検証=test_b2_batch14-version-Opus.js。確定179→186。 ※方針:op追加で量産可能な型(コスト払い『〜することで』・KW/無進化元フィルタ・N体まで・多型・satk対他/他者)はB1として後回し、現op完結の希少多様型を優先。 / 第15弾＝『現op完結の希少3パターン』3 base：BT2-017(進化時 赤テイマー条件→DP3000以下消滅 ＋ 進化元static[自分ターン∧相手トラッシュ5枚以上]DP+1000)・EX2-020(登場時 セキュリティ<=3∧李小春存在→リカバリー+1・2条件AND)・BT3-041(アタック時 セキュリティ<=3→自トラッシュの黄デジモンをセキュリティ上へ・move)。新規活用=静的継承のzoneCount条件/exists nameContains/recovery条件/move(trash→security_top)。検証=test_b2_batch15-version-Opus.js。確定186→189。 / 第16弾＝【B1解禁】selfSource条件をエンジン追加し、進化ライン札を解禁。BT5-010(進化元「アグモン」→memory+1 ＋静的グレイモン/オメガモンDP+2000)・BT5-015(進化元メタルグレイモン含む→DP4000以下消滅 ＋静的DP+2000)・BT5-024(進化元「ガブモン」→memory+1 ＋静的両ターンDP+1000)。selfSource={nameIs(完全一致)/nameContains(部分一致)/type/featureAny...}=inst.stackをedbCardMatchesFilterで照合。既存entry未使用＝回帰85/0不変を確認。『進化元に〜がある』系は約120枚が今後解禁可能。検証=test_b2_batch16-version-Opus.js。確定189→192。 / 第17弾＝『現op完結の希少3パターン』10 base：①ドロー後に手札破棄(loot) BT4-079/ST16-02(登場時1draw1discard)・BT4-083(消滅時2draw1discard)・BT7-069(消滅時3draw2discard)＝draw→discard_hand逐次。②相手DP-N(このターン) BT1-062(-8000)/BT1-055(-3000)/BT5-042(-4000)/BT5-039(消滅時-3000)/ST3-11(アタック時-4000)＝dp_mod負値・相手selector。③BT7-052(進化時 自身DP+5000/このターン＋消滅時memory+2・2ブロック)。新規活用=discard_hand/dp_mod負値・相手/dp_mod自身。検証=test_b2_batch17-version-Opus.js。確定192→202。 / 第18弾＝現op希少3パターン10枚：①dig(reveal_deck_top→select_from_revealed→dispose_revealed) ST4-03/BT12-045(緑デジモンをhand/残りデッキ下)・ST15-04(黒カード/残り破棄)・BT3-047(Lv4-5デジモン)・EX3-003(特徴竜デジモン)。②条件付相手DP減 BT1-054(memory>=3→-2000)/BT3-042(sec<=3→-6000)/BT4-041(-4000)/BT4-044(-3000)。③BT1-061(相手2体DP-3000・count:2)。新規活用=reveal_deck_top/select_from_revealed(upTo:false)/dispose_revealed/memory条件/dp_mod count:2。検証=test_b2_batch18-version-Opus.js。確定202→212。 / 第19弾【B方針＝家族解禁・コスト払い】6 base：既存のblock.cost機構(改修ゼロ)で「することで」を表現。BT4-037/BT6-041(セキュリティ破棄→相手DP-2000/-5000)・BT6-072(手札破棄→Lv4以下消滅)・BT4-078(オプション破棄→memory+1)・BT9-058/EX1-045(特定札破棄→2ドロー)。コストop=trash_security_self/discard_hand(type/filter可)。検証=test_b2_batch19-version-Opus.js。確定212→218。※『することで』系は他に多数あるが、メモリーコスト/特殊進化/付与/参照効果を含むものは別途。 / 第20弾【B方針・dig継続】8 base(改修ゼロ・既存op)：①コスト付dig BT14-042(rest_selfコスト→緑1枚)。②2連dig『AとB1枚ずつ』＝select_from_revealedを2回(残りから2回目)。BT5-007/BT5-020(名称含む×2)・BT8-058(名称+竜人型)・BT10-046(植物型+妖精型)・BT4-009/BT4-023(ハイブリッド体+色テイマー)・BT2-044(Lv5+緑テイマー)。新規確認=select消費による2連select/nameContains配列/featureContains(1要素)/featureAny『持つ』。検証=test_b2_batch20-version-Opus.js。確定218→226。 / 第21弾【B方針・既存op】6 base(改修ゼロ)：①salvage ST6-10(move trash→hand・upTo:true任意)。②コスト払い BT2-077(destroy_own other→Lv5以下消滅)。③dig「N枚まで」BT6-009/BT5-034(count:2,upTo:true)。④dig「全て」BT1-048/EX2-030(count=公開数,upTo:false=全取得)。新規確認=move任意/destroy_own other/select count:Nまで/upTo:falseで全取得。検証=test_b2_batch21-version-Opus.js。確定226→232。 / 第22弾【B1家族・プレイヤーにアタック】3 base：エンジンに`attackTarget`条件を追加(selfSource同型・既存不干渉・回帰85/0維持)。BT2-012(自身DP+4000)/BT2-015(1ドロー)/BT2-019(memory+1)＝on_attack＋attackTarget:'player'。HTML/validatorも更新。検証=test_b2_batch22-version-Opus.js。確定232→235。※他の『プレイヤーにアタック』札はブロッカー/進撃/テイマー条件等を含むため別途。 / 第23弾【B1家族・キーワード付与(静的)】3 base：既存のstatic grant機構(edbActiveGrants→hasKeyword→実ゲーム処理)で「《X》を得る」を表現。ST9-07/ST10-07(相手ターン・色デジモンいる間ブロッカー)・BT2-026(自分ターン・青テイマーいる間ジャミング)。エンジン改修なし(静的DP継承と同形式)。ブロッカー判定9928/10066・ジャミング10166がhasKeyword参照を確認済。検証=test_b2_batch23-version-Opus.js。確定235→238。※『次の相手ターン終了まで』等の時限付与・他デジモンへの付与は別途。 / 第24弾【B1家族・キーワード付与(誘発一時/選択対象)】3 base：grant_keywordにpicker対応を追加(既存EDB未使用→安全・回帰85/0維持)。BT4-058(このターン 自分1体 貫通)・ST5-09(次相手ターン終了まで 自分1体 ブロッカー)・ST5-12(同 2体まで 再起動)。grant_keyword selector+countで対象選択、tempKeywordsで持続近似。HTMLも更新。検証=test_b2_batch24-version-Opus.js。確定238→241。 / 第25弾【B1家族・キーワード付与(静的全体)】1 base：hasKeywordのtargetをselector対応に拡張(既存EDB未使用→回帰85/0維持)＝「(条件)自分のデジモン全ては《X》を得る」が可能に。BT6-082(条件:ハックモン名orロイヤルナイツ特徴の自分デジモンがいる間、シスタモン名の自分デジモン全てブロッカー＋登場時1ドロー)。OR条件・target selector(name filter)・全体付与を実証。HTMLも更新。検証=test_b2_batch25-version-Opus.js。確定241→242。※P-033等の『セキュリティアタック+N付与』はgetSatkがEDB付与を見ないため別途。 / 第26弾【ゼロ改修・蓄積語彙の再発掘】1 base：P-050(2トリガ＝進化時 自分テイマーいるならDP13000以上消滅／アタック時 DP4000以下消滅)。既存exists条件＋destroyのdpMin/dpMaxのみ。検証=test_b2_batch26-version-Opus.js。確定242→243。※防止系『消滅しない』は既存immune_opp_effect_destroyがバトル消滅も止める不備のため見送り(§5記録)。 / 第27弾【集約・10枚目標→5枚】複数パターン横断：BT4-061(消滅時 相手2体までレスト・ゼロ改修)／BT1-023(登場時 ブロッカー持ち消滅)・BT5-016(進化元グレイモン条件＋ブロッカー持ち消滅／継承DP3000以下消滅)・BT1-094(オプション ブロッカー持ち消滅)＝`hasKeyword`フィルタ追加で解禁／P-044(相手1体orDP5000以下2体レスト＝choose_one)。エンジン:edbSelectCandidatesにhasKeywordフィルタ追加(既存不使用→回帰85/0維持)。HTML/validator更新。検証=test_b2_batch27-version-Opus.js。確定243→248。※フルクリーン10枚は枯渇のため不可、集約で最大化。 / 第28弾【(a)集約・小拡張2つ】3 base：noSourceフィルタ＋per-count乗数を追加(既存不使用→回帰85/0維持)。BT6-026/EX2-014(進化元を持たないLv.4以下を手札に＝noSource)・BT5-035(自分デジモン数ぶん相手DP-1000＝perCount)。HTML/validator更新。検証=test_b2_batch28-version-Opus.js。確定248→251。※BT9-065(デジモン/テイマー両対象消滅)はdestroy opが型省略時に強制デジモン化するため別途anyType対応が要り見送り。",
+    "_p2_b2": "P2-B2(Opus): 現op群で忠実かつ完全に書けるカードを手作業確定。第1弾＝「ブロッカー＋アタック時メモリー-N」15 base（ブロッカーはcard.keywordsで保持、DBはon_attack memoryのみ）。 / 第2弾＝「キーワード＋進化時 退化」2 base（BT3-018退化2・EX1-054退化1）。 / 第3弾＝「(登場/消滅)時 Lv.3の相手1体を消滅」3 base（ST10-11・P-018・BT6-070）。turn_start系はEDB未発火のため除外。 / 第4弾＝「登場時 デッキ上Nオープン→単純フィルタ1枚を手札→残りを下/破棄」4 base（BT1-010・BT1-067・BT3-084・P-042、手本ST14-11）。 / 第5弾＝オプション「メイン〈消滅/手札戻し/リカバリー/退化〉＋セキュリティ発揮」5 base（ST1-16・ST2-16・BT1-107・BT2-105・BT2-106）。 / 第6弾＝filter付き消滅/レスト4 base（ST5-16コスト7以下消滅opt・ST16-16 Lv5以下消滅opt・ST15-09登場時コスト5以下消滅・BT1-070登場時レスト）。 / 第7弾＝DP/アクティブ条件の消滅・レスト10 base（ST7-07,ST18-03,BT2-091,BT2-110,BT3-017,BT3-098,BT4-055,BT18-008,EX1-034,P-001）。 / 第8弾＝reveal拡張(lvMin/nameContains/featureAny)5 base（ST4-10,ST8-03,ST10-08,BT1-074,EX1-024）。 / 第9弾＝進化元(inherited)DP条件 消滅/レスト＋トラッシュ回収(move)＋本体DP消滅 12 base。 / 第10弾＝reveal→コスト0登場2(BT3-063,BT4-063)＋特徴revealST9-02。 / 第11弾＝「単純メイン効果＋(進化元null/末尾バレキーワード)」3 base（ST15-10進化時退化1+再起動・EX8-049登場時消滅時退化1+ブロッカー・P-080登場時条件付きLv.3消滅）。進化元キーワードはextractKeywords末尾取りこぼし+hasKeyword源未走査で現エンジン非機能のためinherited kind:'rule'記録のみ（挙動不変・B1実装対象）。 / 第12弾＝「進化時/登場時 相手1体の進化元をN枚破棄」5 base（trash_source初使用）：ST2-09(進化時・下2)・BT1-043(進化時・下4)・BT8-022(登場時・上1)・EX1-012(登場時・下1)・P-003(登場時・下1)。全て進化元/セキュリティ無し＝主効果のみで全ブロック被覆。p.from=top/bottom・p.count=破棄枚数・対象は進化元保持(stack>0)の相手1体(複数候補picker/0体不発)。検証=test_b2_trashsource-version-Opus.js。確定171→176。 / 第13弾＝『完全被覆できる残り』3 base：P-079(登場時・赤テイマー条件→DP3000以下消滅)・P-082(登場時・緑テイマー条件→レスト)・P-131(登場時レスト＋進化元static『自分のターンDP+2000』)。条件はexists、dpMaxはgetDP、staticはisMyTurn恒常。無条件クリーン札は枯渇しつつあり、以降は条件付/継承を伴う札が中心。検証=test_b2_batch13-version-Opus.js。確定176→179。 / 第14弾＝『現op完結の多様な5パターン』8 base：BT1-036(登場時 自分1体activate)・BT3-025(進化時 Lv.4以下自分1体activate)・ST1-08/BT7-010(進化時 自分1体DP+N/このターン)・BT5-011(進化時 他の自分1体DP+3000)・BT5-055(消滅時 レスト相手をデッキ下bounce＝進化元自動破棄)・P-028(登場時 セキュリティ枚数で条件分岐 draw/memory・2ブロック)。新規活用op=activate(対象選択)/dp_mod(selector)/bounce(rested+deck_bottom)/zoneCount(security)。検証=test_b2_batch14-version-Opus.js。確定179→186。 ※方針:op追加で量産可能な型(コスト払い『〜することで』・KW/無進化元フィルタ・N体まで・多型・satk対他/他者)はB1として後回し、現op完結の希少多様型を優先。 / 第15弾＝『現op完結の希少3パターン』3 base：BT2-017(進化時 赤テイマー条件→DP3000以下消滅 ＋ 進化元static[自分ターン∧相手トラッシュ5枚以上]DP+1000)・EX2-020(登場時 セキュリティ<=3∧李小春存在→リカバリー+1・2条件AND)・BT3-041(アタック時 セキュリティ<=3→自トラッシュの黄デジモンをセキュリティ上へ・move)。新規活用=静的継承のzoneCount条件/exists nameContains/recovery条件/move(trash→security_top)。検証=test_b2_batch15-version-Opus.js。確定186→189。 / 第16弾＝【B1解禁】selfSource条件をエンジン追加し、進化ライン札を解禁。BT5-010(進化元「アグモン」→memory+1 ＋静的グレイモン/オメガモンDP+2000)・BT5-015(進化元メタルグレイモン含む→DP4000以下消滅 ＋静的DP+2000)・BT5-024(進化元「ガブモン」→memory+1 ＋静的両ターンDP+1000)。selfSource={nameIs(完全一致)/nameContains(部分一致)/type/featureAny...}=inst.stackをedbCardMatchesFilterで照合。既存entry未使用＝回帰85/0不変を確認。『進化元に〜がある』系は約120枚が今後解禁可能。検証=test_b2_batch16-version-Opus.js。確定189→192。 / 第17弾＝『現op完結の希少3パターン』10 base：①ドロー後に手札破棄(loot) BT4-079/ST16-02(登場時1draw1discard)・BT4-083(消滅時2draw1discard)・BT7-069(消滅時3draw2discard)＝draw→discard_hand逐次。②相手DP-N(このターン) BT1-062(-8000)/BT1-055(-3000)/BT5-042(-4000)/BT5-039(消滅時-3000)/ST3-11(アタック時-4000)＝dp_mod負値・相手selector。③BT7-052(進化時 自身DP+5000/このターン＋消滅時memory+2・2ブロック)。新規活用=discard_hand/dp_mod負値・相手/dp_mod自身。検証=test_b2_batch17-version-Opus.js。確定192→202。 / 第18弾＝現op希少3パターン10枚：①dig(reveal_deck_top→select_from_revealed→dispose_revealed) ST4-03/BT12-045(緑デジモンをhand/残りデッキ下)・ST15-04(黒カード/残り破棄)・BT3-047(Lv4-5デジモン)・EX3-003(特徴竜デジモン)。②条件付相手DP減 BT1-054(memory>=3→-2000)/BT3-042(sec<=3→-6000)/BT4-041(-4000)/BT4-044(-3000)。③BT1-061(相手2体DP-3000・count:2)。新規活用=reveal_deck_top/select_from_revealed(upTo:false)/dispose_revealed/memory条件/dp_mod count:2。検証=test_b2_batch18-version-Opus.js。確定202→212。 / 第19弾【B方針＝家族解禁・コスト払い】6 base：既存のblock.cost機構(改修ゼロ)で「することで」を表現。BT4-037/BT6-041(セキュリティ破棄→相手DP-2000/-5000)・BT6-072(手札破棄→Lv4以下消滅)・BT4-078(オプション破棄→memory+1)・BT9-058/EX1-045(特定札破棄→2ドロー)。コストop=trash_security_self/discard_hand(type/filter可)。検証=test_b2_batch19-version-Opus.js。確定212→218。※『することで』系は他に多数あるが、メモリーコスト/特殊進化/付与/参照効果を含むものは別途。 / 第20弾【B方針・dig継続】8 base(改修ゼロ・既存op)：①コスト付dig BT14-042(rest_selfコスト→緑1枚)。②2連dig『AとB1枚ずつ』＝select_from_revealedを2回(残りから2回目)。BT5-007/BT5-020(名称含む×2)・BT8-058(名称+竜人型)・BT10-046(植物型+妖精型)・BT4-009/BT4-023(ハイブリッド体+色テイマー)・BT2-044(Lv5+緑テイマー)。新規確認=select消費による2連select/nameContains配列/featureContains(1要素)/featureAny『持つ』。検証=test_b2_batch20-version-Opus.js。確定218→226。 / 第21弾【B方針・既存op】6 base(改修ゼロ)：①salvage ST6-10(move trash→hand・upTo:true任意)。②コスト払い BT2-077(destroy_own other→Lv5以下消滅)。③dig「N枚まで」BT6-009/BT5-034(count:2,upTo:true)。④dig「全て」BT1-048/EX2-030(count=公開数,upTo:false=全取得)。新規確認=move任意/destroy_own other/select count:Nまで/upTo:falseで全取得。検証=test_b2_batch21-version-Opus.js。確定226→232。 / 第22弾【B1家族・プレイヤーにアタック】3 base：エンジンに`attackTarget`条件を追加(selfSource同型・既存不干渉・回帰85/0維持)。BT2-012(自身DP+4000)/BT2-015(1ドロー)/BT2-019(memory+1)＝on_attack＋attackTarget:'player'。HTML/validatorも更新。検証=test_b2_batch22-version-Opus.js。確定232→235。※他の『プレイヤーにアタック』札はブロッカー/進撃/テイマー条件等を含むため別途。 / 第23弾【B1家族・キーワード付与(静的)】3 base：既存のstatic grant機構(edbActiveGrants→hasKeyword→実ゲーム処理)で「《X》を得る」を表現。ST9-07/ST10-07(相手ターン・色デジモンいる間ブロッカー)・BT2-026(自分ターン・青テイマーいる間ジャミング)。エンジン改修なし(静的DP継承と同形式)。ブロッカー判定9928/10066・ジャミング10166がhasKeyword参照を確認済。検証=test_b2_batch23-version-Opus.js。確定235→238。※『次の相手ターン終了まで』等の時限付与・他デジモンへの付与は別途。 / 第24弾【B1家族・キーワード付与(誘発一時/選択対象)】3 base：grant_keywordにpicker対応を追加(既存EDB未使用→安全・回帰85/0維持)。BT4-058(このターン 自分1体 貫通)・ST5-09(次相手ターン終了まで 自分1体 ブロッカー)・ST5-12(同 2体まで 再起動)。grant_keyword selector+countで対象選択、tempKeywordsで持続近似。HTMLも更新。検証=test_b2_batch24-version-Opus.js。確定238→241。 / 第25弾【B1家族・キーワード付与(静的全体)】1 base：hasKeywordのtargetをselector対応に拡張(既存EDB未使用→回帰85/0維持)＝「(条件)自分のデジモン全ては《X》を得る」が可能に。BT6-082(条件:ハックモン名orロイヤルナイツ特徴の自分デジモンがいる間、シスタモン名の自分デジモン全てブロッカー＋登場時1ドロー)。OR条件・target selector(name filter)・全体付与を実証。HTMLも更新。検証=test_b2_batch25-version-Opus.js。確定241→242。※P-033等の『セキュリティアタック+N付与』はgetSatkがEDB付与を見ないため別途。 / 第26弾【ゼロ改修・蓄積語彙の再発掘】1 base：P-050(2トリガ＝進化時 自分テイマーいるならDP13000以上消滅／アタック時 DP4000以下消滅)。既存exists条件＋destroyのdpMin/dpMaxのみ。検証=test_b2_batch26-version-Opus.js。確定242→243。※防止系『消滅しない』は既存immune_opp_effect_destroyがバトル消滅も止める不備のため見送り(§5記録)。 / 第27弾【集約・10枚目標→5枚】複数パターン横断：BT4-061(消滅時 相手2体までレスト・ゼロ改修)／BT1-023(登場時 ブロッカー持ち消滅)・BT5-016(進化元グレイモン条件＋ブロッカー持ち消滅／継承DP3000以下消滅)・BT1-094(オプション ブロッカー持ち消滅)＝`hasKeyword`フィルタ追加で解禁／P-044(相手1体orDP5000以下2体レスト＝choose_one)。エンジン:edbSelectCandidatesにhasKeywordフィルタ追加(既存不使用→回帰85/0維持)。HTML/validator更新。検証=test_b2_batch27-version-Opus.js。確定243→248。※フルクリーン10枚は枯渇のため不可、集約で最大化。 / 第28弾【(a)集約・小拡張2つ】3 base：noSourceフィルタ＋per-count乗数を追加(既存不使用→回帰85/0維持)。BT6-026/EX2-014(進化元を持たないLv.4以下を手札に＝noSource)・BT5-035(自分デジモン数ぶん相手DP-1000＝perCount)。HTML/validator更新。検証=test_b2_batch28-version-Opus.js。確定248→251。※BT9-065(デジモン/テイマー両対象消滅)はdestroy opが型省略時に強制デジモン化するため別途anyType対応が要り見送り。 / 第30弾【(a)集約・オプション家族＋ターン1回1枚＝10枚】drawにperCount/perCountUnit追加(既存draw無perCount→回帰85/0維持)。ST1-15/ST3-16/BT2-101/BT4-106/BT4-108/BT6-101/BT1-111/BT1-102(オプション・main+sec各々)＋ST2-11(ターン1回 自身activate)。HTML/validator更新。検証=test_b2_batch30-version-Opus.js。確定251→260。 / 第31弾【(a)集約・オプション継続】6 base：return_self_to_hand op追加(myTrash末尾のcardIdをmyHandへ＝既存EDB未使用→回帰85/0維持)。ST4-15(sec→手札)・BT1-096(sec:1ドロー＋手札)・BT1-108(sec:相手レスト＋手札)・BT5-108(Lv4・Lv5の2消滅直列★軽微乖離:アクティブ条件未対応)・BT7-094(DP8000以下2体まで消滅)・EX1-067(ブロッカー持ち+DP6000以下消滅)。HTML更新。検証=test_b2_batch31-version-Opus.js。確定260→266。 / 第32弾【(a)集約・オプション継続+小拡張1】9 base：memory opにperCount/perCountUnit追加(既存draw同形・既存不使用→回帰85/0維持)。ST3-14・ST8-11・BT2-107・BT4-112・BT2-103・BT1-106・BT4-111(perCount新)・ST6-15(cost-gate)・BT2-109(cost-gate＋手札)。sec独立op家族＋手札家族を集約。HTML更新。検証=test_b2_batch32-version-Opus.js。確定266→275。※BT5-106はsec=『登場時効果無しの無料登場』が機構未対応、本体だけ登録するとsec旧パース失効リスクのため見送り(§4u)。 / 第33弾【(a)集約・残デジモン3枚＋filter拡張2】3 base：`costIn`(複数値ORコスト)＋`nameExcludes`(名称否定)フィルタ追加(既存不使用→回帰85/0維持)。ST6-04(salvage紫オプcostIn:[1,7])・BT5-072(salvage Lv.3デジモンnameExcludes+textContains)・BT14-043(cost-gate rest_self→相手rest)。HTML/validator更新。検証=test_b2_batch33-version-Opus.js。確定275→278。 / 第34弾【(a)集約・オプション継続+小拡張3】7 base：notHasKeywordフィルタ＋devolve/trash_sourceの対象数(selector.count)+upTo対応(既存不使用→回帰85/0維持)。BT1-091/BT1-098(grant_keyword貫通/ジャミング)・BT2-104(ブロッカー持ち全アクティブ＋DP+5000)・BT1-110(notHasKW全レスト)・ST5-15(devolve2体までupTo)・BT1-099/BT1-101(trash_source 単体/全体)。HTML/validator更新。検証=test_b2_batch34-version-Opus.js。確定278→285。",
     "_ex12073": "EX12-073「巨大肉」(白オプション・確定164枚目)を追加。cards.jsonに欠落のためカードデータはcard-overrides.jsonに新規登録(id付き=新規カード認識)。effect実行はこのEDBエントリが担う。【メイン】reveal3→特徴NSp/DS/NSo/WG/ME/VB一致1枚を手札(upTo)→残りデッキ下。「その後このカードをバトルエリアに置く」はconfirmPlayOptionのstaysInBattle判定(card._effect_text内の同文を検知)で自動配置されるためmainにplace_self_battleは入れない(入れると重複)。第2の【メイン】【ディレイ】=delay text:'メモリー+2'(次の自分メイン開始時に解決)。security=place_self_battle。複数【メイン】はedbEnqueueTriggeredが同時誘発として両方積む(順番選択モーダル)。【限界】使用条件(特徴持ちデジモン/テイマー＋育成エリア)はEDB自動判定不可＝エンジンのオプション使用ゲートは色のみ判定し強制使用可。ソロで自己判定する前提。検証=test_ex12073-version-Opus.js 7/0(reveal/staysInBattle重複なし/delay/security)。",
     "_engine_fixes_opus": "第3-4セッション(Opus)でv5 HTMLに2件のエンジン修正を適用(いずれも実証再現→修正→回帰85/0)。①ターン終了バグ: checkTurnEnd()のモーダル閉分岐がeffectQueueの残りを確認せず300ms後にendMyTurnをスケジュール→同時誘発で片方処理後にメモリーが渡ると残り効果が落ちる。修正=保留条件にqueueBusy(effectQueue.length>0||effectQueueRunning||_edbBusy||_simultaneousEffects残)を追加し、キューが空くまでpendingTurnEndで保留(processEffectQueue/closeModalが空時に発火)。検証=test_turnend_bug-version-Opus.js 5/0(デッドロック反証込み)。②EDBオプションsecurity不発: triggerEffect('セキュリティ効果')が(a)EDB_TRIGGER_JP未マップで'security'に変換されず(b)edbEnqueueTriggeredがfx.effectsのみ読みfx.securityを無視→全EDBオプションのsecurity:[]ブロックが皆無発火だった(ST1-16等既存も含む)。修正=(a)EDB_TRIGGER_JPに'セキュリティ効果':'security'追加(b)triggerEffectで_edbEv==='security'時にfx.securityをedbEnqueueTriggeredで別途ディスパッチ。検証=ST1-16/EX12-073両方のsecurityが発火確認。③実セキュリティフリップ未発火(実証修正): 実機でST1-16/EX12-073/BT9-095をセキュリティアタックで公開しても効果が出ずトラッシュ直行と報告(ユーザ実証)。原因=doSecurityCheckChainのオプション分岐が公開カードをoppTrashへ送りfireSpecialTrigger('onSecurityBattle')を撃つだけで、公開オプション自身の'security'ブロックを一切解決していなかった(triggerEffect('セキュリティ効果')経由とは別経路)。修正=オプション公開時、EDB登録済み(fx.security有)なら『所有者(守備側)視点』で自動解決する。具体的には_securitySwapSides()でG.my*↔G.opp*の参照を一時入替→triggerEffect(secInst,'セキュリティ効果')→_afterSecuritySettles()で効果キュー/モーダルが落ち着くのを待ち視点を復元してからチェーン継続。これにより『このカードをバトルエリアに置く』(place_self_battleはmyBattleArea固定)→守備側の場へ、『相手のデジモン消滅』(side:'opp')→攻撃側を対象、と正しく解決される。EDB未登録オプションは_parsed_securityがaction:'unknown'等で不安定なため従来どおりトラッシュのみ(=securityを動かすにはEDB登録が必要)。検証=test_security_flip-version-Opus.js 6/0(EX12-073→守備側場/攻撃側不干渉/ST1-16→攻撃側消滅/通常デジモン回帰)。【ダブルモード注意】G=GD[activePlayer]のため入替は一時的にGD[active]の配列も変えるがsettleコールバックで必ず復元(net-zero)。 【限界】memoryは符号付き単一ゲージで側概念が配列と異なるため入替対象外＝security内でmemory/satkを操作するカード(ST2-13等)はフリップ時に攻撃側視点で解決され得る。消滅/配置/draw/recovery/bounce/devolve/moveは入替済配列で正しい。 / [B1] edbCheckConditionに selfSource 条件を追加(自分の進化元stackに名称/特徴一致カードがあるか)。既存挙動不変(新規entryのみ作用)・回帰85/0維持。HTMLに直接実装(edb_module.jsは本環境に無し)。validatorのKNOWN_COND_KEYSにも追加。",
     "_bt9095": "BT9-095「ガイアフォースZERO」(赤オプション・確定165枚目)を追加。【メイン】DP13000以下の相手デジモン1体消滅。security=相手デジモン1体消滅。実機でフリップ未発火と報告された3枚(ST1-16/EX12-073/BT9-095)のうちBT9-095のみEDB未登録だったため追加。【手動】使用コスト-2(X抗体進化元条件)/その後グレイモン名称デジモンでアタック=opが無く未対応。",
@@ -7599,6 +7599,1386 @@
               "type": "デジモン",
               "count": 1
             }
+          }
+        ]
+      }
+    ]
+  },
+  "ST1-15": {
+    "_name": "ギガデストロイヤー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メインDP4000以下の相手のデジモン2体までを消滅させる。」。DP4000以下を2体まで(upTo・optional)→picker。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 4000
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "optional": true
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 4000
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "optional": true
+          }
+        ]
+      }
+    ]
+  },
+  "ST3-16": {
+    "_name": "セブンヘブンズ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メインこのターンの間、相手のデジモン1体のDPを-10000する。」。相手1体DP-10000(tempDP)。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -10000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -10000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-101": {
+    "_name": "チェリーボム",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メインDP6000以下の相手のデジモン全てをレストさせる。」。全ては大きいcountで対象全件適用(候補<=count→全部適用、picker開かない)。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 6000
+              },
+              "count": 99
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 6000
+              },
+              "count": 99
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-106": {
+    "_name": "パージシャイン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メインこのターンの間、相手のデジモン全てのDPを-3000する。」。相手全てDP-3000(tempDP)。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -3000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 99
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -3000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 99
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-108": {
+    "_name": "旋風タービン蹴り",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メイン自分のデジモン1体をアクティブにし、相手のデジモン1体をレストさせる。」。2op直列：自分1体activate→相手1体rest。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          },
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          },
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-101": {
+    "_name": "ブレス・オブ・ワイバーン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メインこのターンの間、相手のデジモン1体のDPを-15000する。」。相手1体DP-15000。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -15000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -15000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-111": {
+    "_name": "ギガブラスター",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メイン相手のデジモン1体か、DP5000以下の相手のデジモン2体をレストさせる。」。choose_one。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "choose_one",
+            "options": [
+              [
+                {
+                  "op": "rest",
+                  "selector": {
+                    "side": "opp",
+                    "zone": "battle",
+                    "type": "デジモン",
+                    "count": 1
+                  }
+                }
+              ],
+              [
+                {
+                  "op": "rest",
+                  "selector": {
+                    "side": "opp",
+                    "zone": "battle",
+                    "type": "デジモン",
+                    "filter": {
+                      "dpMax": 5000
+                    },
+                    "count": 2
+                  }
+                }
+              ]
+            ],
+            "labels": [
+              "相手のデジモン1体をレスト",
+              "DP5000以下の相手のデジモン2体をレスト"
+            ]
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "choose_one",
+            "options": [
+              [
+                {
+                  "op": "rest",
+                  "selector": {
+                    "side": "opp",
+                    "zone": "battle",
+                    "type": "デジモン",
+                    "count": 1
+                  }
+                }
+              ],
+              [
+                {
+                  "op": "rest",
+                  "selector": {
+                    "side": "opp",
+                    "zone": "battle",
+                    "type": "デジモン",
+                    "filter": {
+                      "dpMax": 5000
+                    },
+                    "count": 2
+                  }
+                }
+              ]
+            ],
+            "labels": [
+              "相手のデジモン1体をレスト",
+              "DP5000以下の相手のデジモン2体をレスト"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-102": {
+    "_name": "ホーリーエスパーダ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション集約) ※原文照合「メイン自分のセキュリティ2枚ごとに、1ドロー。」。自分セキュリティ枚数/2ぶんドロー。drawにperCount＋perCountUnit(分母=2)対応を追加。 option=trigger:'main'＋security配列(BT1-097形式)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1,
+            "perCount": {
+              "side": "my",
+              "zone": "security"
+            },
+            "perCountUnit": 2
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1,
+            "perCount": {
+              "side": "my",
+              "zone": "security"
+            },
+            "perCountUnit": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST2-11": {
+    "_name": "メタルガルルモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus) ※原文照合「アタック時ターン1回 このデジモンをアクティブにする」。on_attack＋limit:'ターン1回'(JP)＋activate_self(自身)。第29弾で'ターン1回'/'once_per_turn'両受理。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "ターン1回",
+        "actions": [
+          {
+            "op": "activate_self"
+          }
+        ]
+      }
+    ]
+  },
+  "ST4-15": {
+    "_name": "チクチクバンバン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/sec→手札) ※原文照合「メイン:相手1体レスト / sec:メイン効果を発揮＋このカードを手札に加える」。main=rest opp count:1, sec=同actions＋return_self_to_hand(新op)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          },
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-096": {
+    "_name": "ヘルファイアー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「メイン:このターン 自分1体DP+3000 / sec:1ドロー その後手札に加える」。main=dp_mod value:+3000 selector自分1体, sec=draw 1＋return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": 3000,
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          },
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-108": {
+    "_name": "ホーンバスター",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「メイン:このターン 自分1体DP+3000 / sec:相手1体レスト その後手札に加える」。main=dp_mod value:+3000 自分1体, sec=rest opp count:1＋return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": 3000,
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          },
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-108": {
+    "_name": "壱の太刀",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション・近似) ※原文照合「メイン:Lv.4とLv.5のアクティブ状態の相手のデジモン1体ずつを消滅」。2 destroy直列(filter:{lvIs:4}・{lvIs:5} 各count:1)。★軽微乖離：「アクティブ状態のみ」フィルタは現在未対応＝レスト状態の相手も対象に入る。filter拡張(isResetState/isActiveState)で厳密化可能。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 4
+              },
+              "count": 1
+            }
+          },
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 5
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 4
+              },
+              "count": 1
+            }
+          },
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 5
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT7-094": {
+    "_name": "ジガストーム",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「メイン:DP8000以下の相手2体まで消滅 / sec:メイン効果を発揮」。destroy filter:{dpMax:8000} count:2 upTo→picker。sec=同actions。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 8000
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "optional": true
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "dpMax": 8000
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "optional": true
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-067": {
+    "_name": "炎の洗礼！！",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「メイン:ブロッカーを持つDP6000以下の相手1体消滅 / sec:メイン効果を発揮」。destroy filter:{hasKeyword:'ブロッカー', dpMax:6000} count:1。hasKeywordフィルタ(§4p)＋dpMax併用。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー",
+                "dpMax": 6000
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー",
+                "dpMax": 6000
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST3-14": {
+    "_name": "ヘブンズチャーム",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/sec単独手札) ※原文照合「main:このターン 相手1体DP-2000 / sec:このカードを手札に加える」。main=dp_mod opp count:1 value:-2000, sec=return_self_to_hand単独。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -2000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "ST8-11": {
+    "_name": "アルフォースセイバー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:青の自分のデジモン1体をアクティブにする / sec:このカードを手札に加える」。main=activate selector(my,filter:{colorAny:[青]},count:1) / sec=return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "青"
+                ]
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-107": {
+    "_name": "ダークネスクロウ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:このターン 自分1体DP+3000 / sec:メモリー+2」。main=dp_mod my count:1 value:+3000, sec=memory value:2。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": 3000,
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-112": {
+    "_name": "ヘルズゲート",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:Lv.6以上の相手1体消滅 / sec:このカードを手札に加える」。main=destroy filter:{lvMin:6} count:1, sec=return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvMin": 6
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-103": {
+    "_name": "スパイラルソード",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:このターン 自分1体DP+3000 / sec:ブロッカー持ち自分1体アクティブ」。main=dp_mod my +3000, sec=activate selector(my, hasKeyword:'ブロッカー', count:1)。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": 3000,
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー"
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-106": {
+    "_name": "第一曲≪ポリフォニー≫",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/secなし) ※原文照合「main:このターン 相手1体DP-7000」。main=dp_mod opp count:1 value:-7000。secなし。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -7000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-111": {
+    "_name": "ジャックレイド",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/memory.perCount) ※原文照合「main:自分のトラッシュ10枚ごとにメモリー+1 / sec:メモリー+2」。main=memory value:1 perCount:{my,trash} perCountUnit:10(新拡張・drawと同形), sec=memory value:2。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1,
+            "perCount": {
+              "side": "my",
+              "zone": "trash"
+            },
+            "perCountUnit": 10
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "ST6-15": {
+    "_name": "デスクロウ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/cost-gate ※原文照合「main:自分1体消滅 cost→Lv.4以下相手1体消滅」。block.cost=destroy_own、actions=destroy filter:{lvMax:4}。secなし。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "cost": [
+          {
+            "op": "destroy_own"
+          }
+        ],
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvMax": 4
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-109": {
+    "_name": "ヒート・バイパー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/cost-gate＋手札) ※原文照合「main:自分1体消滅 cost→Lv.4以下相手2体まで消滅 / sec:このカードを手札に加える」。block.cost=destroy_own、actions=destroy filter:{lvMax:4} count:2 upTo→picker。sec=return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "cost": [
+          {
+            "op": "destroy_own"
+          }
+        ],
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "lvMax": 4
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "optional": true
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "ST6-04": {
+    "_name": "ドラクモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・salvage/costIn新) ※原文照合「登場時 自分のトラッシュから、紫の使用コスト1か7のオプションカード1枚を手札に戻せる」。on_play move from:trash to:hand upTo:true(任意)、selector type:オプション filter:{colorAny:[紫], costIn:[1,7]}(新costInフィルタ)、count:1。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "move",
+            "from": "trash",
+            "to": "hand",
+            "side": "my",
+            "type": "オプション",
+            "filter": {
+              "colorAny": [
+                "紫"
+              ],
+              "costIn": [
+                1,
+                7
+              ]
+            },
+            "count": 1,
+            "upTo": true
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-072": {
+    "_name": "ニセアグモン博士",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・salvage/nameExcludes新+textContains) ※原文照合「消滅時 自分のトラッシュから『ニセアグモン博士』以外の消滅時効果を持つLv.3デジモン1枚を手札に戻せる」。on_destroy move from:trash to:hand upTo:true、selector type:デジモン filter:{lvIs:3, nameExcludes:['ニセアグモン博士'](新), textContains:['消滅時']}, count:1。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "move",
+            "from": "trash",
+            "to": "hand",
+            "side": "my",
+            "type": "デジモン",
+            "filter": {
+              "lvIs": 3,
+              "nameExcludes": [
+                "ニセアグモン博士"
+              ],
+              "textContains": [
+                "消滅時"
+              ]
+            },
+            "count": 1,
+            "upTo": true
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-043": {
+    "_name": "コドクグモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・cost-gate rest_self系) ※原文照合「登場時 自分のデジモン1体をレストさせることで 相手のデジモン1体をレストさせる」。block.cost=rest_self(このデジモン自身を) actions=rest opp count:1。※原文の『自分のデジモン1体をレスト』は本体含む(他指定なし)→ctx.instのrest_self相当=このデジモン自身。",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "cost": [
+          {
+            "op": "rest_self"
+          }
+        ],
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-091": {
+    "_name": "スクラップレスクロー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:このターン 自分のデジモン1体は貫通を得る」(secなし)。main=grant_keyword selector自分1体 keywords:['貫通']。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "grant_keyword",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "keywords": [
+              "貫通"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-098": {
+    "_name": "ブイブレスアロー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:このターン 自分のデジモン1体はジャミングを得る / sec:このカードを手札に加える」。main=grant_keyword keywords:['ジャミング'], sec=return_self_to_hand。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "grant_keyword",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "keywords": [
+              "ジャミング"
+            ]
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "return_self_to_hand"
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-104": {
+    "_name": "アトミック・レイ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション) ※原文照合「main:ブロッカー持ち自分1体アクティブ / sec:ブロッカー持ち自分全アクティブ＋このターンDP+5000」。main=activate filter:{hasKeyword:'ブロッカー'} count:1. sec=activate count:99(全)＋dp_mod count:99 filter:{hasKeyword:'ブロッカー'} value:+5000。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー"
+              },
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "activate",
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー"
+              },
+              "count": 99
+            }
+          },
+          {
+            "op": "dp_mod",
+            "value": 5000,
+            "selector": {
+              "side": "my",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "hasKeyword": "ブロッカー"
+              },
+              "count": 99
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-110": {
+    "_name": "フラウカノン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/notHasKW新) ※原文照合「main:相手1体レスト / sec:ブロッカーを持たない相手全レスト」。main=rest opp count:1, sec=rest opp filter:{notHasKeyword:'ブロッカー'} count:99(全)。新フィルタnotHasKeyword追加。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "rest",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "filter": {
+                "notHasKeyword": "ブロッカー"
+              },
+              "count": 99
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ST5-15": {
+    "_name": "レーザーアイ",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/devolve拡張) ※原文照合「main:相手2体までを退化1 / sec:メイン効果」。devolveをupTo/対象数対応に拡張。selector.count:2 upTo:true (任意picker)、退化値n=1。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 2,
+              "upTo": true
+            },
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "devolve",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 2,
+              "upTo": true
+            },
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-099": {
+    "_name": "ラブリーアタック",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/trash_source) ※原文照合「main:相手1体の進化元を全て破棄」(secなし)。trash_source count:99(=実質全て・stack枯れたら終了)、対象数1。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            },
+            "count": 99
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-101": {
+    "_name": "ネイルクラッシャー",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・オプション/trash_source 拡張) ※原文照合「main:相手全ての進化元を全て破棄 / sec:メイン効果」。trash_sourceに対象数(selector.count)対応を追加し、count:99で全体適用。",
+    "effects": [
+      {
+        "trigger": "main",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 99
+            },
+            "count": 99
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "trigger": "security",
+        "kind": "triggered",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 99
+            },
+            "count": 99
           }
         ]
       }
