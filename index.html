@@ -10590,6 +10590,13 @@ function collectTurnStartEffects() {
   for (const inst of G.myBattleArea) {
     const card = getCard(inst.cardId);
     if (!card) continue;
+    // [Opus追加/batch37] EDB登録カードは textパース経路をスキップして edbEnqueueTriggered で turn_start 発火
+    // （main_start側=line5723と同形。排他ルーティング §1-5 を turn_start にも適用）
+    const _fxTs = (typeof edbFx === 'function') ? edbFx(inst.cardId) : null;
+    if (_fxTs) {
+      try { edbEnqueueTriggered(inst, _fxTs, 'turn_start'); } catch(e) { log(`効果エラー:${e.message}`,"system"); }
+      continue;
+    }
     // テキストパース（DBカード）
     const blocks = card._parsed_effects || (card._effect_text ? splitAndParseEffects(card._effect_text) : []);
     for (const block of blocks) {
@@ -17495,6 +17502,42 @@ function edbStaticDpBonus(inst) {
     const s = edbFx(srcId);
     if (s) scan(s.inherited);
   }
+  // [Opus拡張/P2-B1] 場の他カード(テイマー等)のstatic grantで「自分のデジモン全て」等を対象にするものを加算
+  // 例: テイマー ST1-12「自分のデジモン全てDP+1000」
+  try {
+    const card = getCard(inst && inst.cardId);
+    if (card && card.type === 'デジモン') {
+      for (const inst2 of (G.myBattleArea || [])) {
+        if (inst2.instanceId === inst.instanceId) continue; // 自身重複防止
+        const fx2 = edbFx(inst2.cardId);
+        if (!fx2) continue;
+        for (const b of (fx2.effects || [])) {
+          if (b.kind !== 'static') continue;
+          const g = b.grant;
+          if (!g || g.op !== 'dp_mod') continue;
+          if (!g.target || g.target === 'self') continue; // selfは上で処理済
+          if (b.condition && !edbCheckCondition(b.condition, inst2)) continue;
+          // turn制限（grant.turn = 'my'/'opp'）
+          if (g.turn === 'my' && !G.isMyTurn) continue;
+          if (g.turn === 'opp' && G.isMyTurn) continue;
+          // targetがselector形式：instがそのselectorに該当するか
+          const tgt = g.target;
+          // tgt = {side, zone, type, filter} を想定
+          const side = tgt.side || 'my';
+          if (side === 'my') {
+            // self-side ＝ instの所属
+            if (!G.myBattleArea.includes(inst)) continue;
+          } else if (side === 'opp') {
+            if (!G.oppBattleArea.includes(inst)) continue;
+          }
+          if (tgt.zone && tgt.zone !== 'battle') continue;
+          if (tgt.type && tgt.type !== card.type) continue;
+          if (tgt.filter && !edbCardMatchesFilter(card, tgt.filter)) continue;
+          add += g.value || 0;
+        }
+      }
+    }
+  } catch(e) {}
   return add;
 }
 
@@ -18387,6 +18430,25 @@ const EDB_OPS = {
       // 既に手札等にある場合（万一の重複呼出）→安全に何もしない
       log(`　→ ${getCard(cId)?.name} は既に手札等にある（手札へ移動スキップ）`, 'system');
     }
+    render(); next();
+  },
+
+  'security_play_self': (p, ctx, next) => {
+    // [Opus拡張/P2-B1] セキュリティ消費時にこのカードをコスト0で登場させる（テイマー/デジモン）。
+    // myTrash末尾から同cardIdを1枚抜き、新instanceとしてmyBattleAreaに置く。
+    // 旧テキスト解析の security_play_free (2362) と等価な挙動。
+    const cId = ctx.inst && ctx.inst.cardId;
+    if (!cId) { next(); return; }
+    const idx = G.myTrash.lastIndexOf(cId);
+    if (idx >= 0) {
+      G.myTrash.splice(idx, 1);
+    }
+    const newInst = newInstance(cId);
+    newInst.usedThisTurn = true;
+    G.myBattleArea.push(newInst);
+    log(`　→ ${getCard(cId)?.name} をコスト0で登場`, 'important');
+    // 登場時効果の発火（テイマーには登場時EDBエントリがある場合に対応）
+    try { triggerEffect(newInst, "登場時", G.myBattleArea, G.myTrash); } catch(e) {}
     render(); next();
   },
 
