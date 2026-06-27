@@ -109,6 +109,23 @@
           "BT8-037"
         ],
         "note": "BT8-037 ディノヒューモン (inherited on_attack dp_mod opp -1000)。ST3-08/BT3-033/BT3-035 と完全同型"
+      },
+      {
+        "batch": 45,
+        "cardsAdded": [
+          "BT14-008",
+          "BT14-015"
+        ],
+        "note": "inherited on_attack + limit + destroy(dpMax) 同型2枚"
+      },
+      {
+        "batch": 46,
+        "cardsAdded": [
+          "BT14-031",
+          "EX1-026",
+          "BT2-035"
+        ],
+        "note": "inherited on_attack + (limit) + (condition) + dp_mod opp -2000 系 3枚"
       }
     ]
   },
@@ -9631,6 +9648,150 @@
           {
             "op": "dp_mod",
             "value": -1000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-008": {
+    "_name": "ギザモン",
+    "_verified": true,
+    "_memo": "P2 (Opus) ※「evolved:アタック時[ターン1回] DP3000以下の相手1体を消滅」。effect/sec=null。inherited on_attack + limit:once_per_turn + destroy selector{filter:{dpMax:3000}} count:1。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 3000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-015": {
+    "_name": "メガドラモン",
+    "_verified": true,
+    "_memo": "P2 (Opus) ※「evolved:アタック時[ターン1回] DP5000以下の相手1体を消滅」。effect/sec=null。inherited on_attack + limit:once_per_turn + destroy selector{filter:{dpMax:5000}} count:1。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 5000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT14-031": {
+    "_name": "エレキモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch46) inherited on_attack + limit + dp_mod opp -2000",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -2000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "EX1-026": {
+    "_name": "テイルモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch46) inherited on_attack + limit + 条件(sec>=3) + dp_mod opp -2000",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": ">=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -2000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-035": {
+    "_name": "ジオグレイモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch46) inherited on_attack + 条件(黄テイマー>=3) + dp_mod opp -2000。BT2-033 既存類例",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "unitCount": {
+            "side": "my",
+            "type": "テイマー",
+            "op": ">=",
+            "value": 3,
+            "filter": {
+              "colorAny": [
+                "黄"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -2000,
             "selector": {
               "side": "opp",
               "zone": "battle",
