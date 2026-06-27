@@ -126,6 +126,27 @@
           "BT2-035"
         ],
         "note": "inherited on_attack + (limit) + (condition) + dp_mod opp -2000 系 3枚"
+      },
+      {
+        "batch": 47,
+        "cardsAdded": [
+          "BT7-032"
+        ],
+        "note": "inherited on_attack + limit + zoneCount==3 + memory +2"
+      },
+      {
+        "batch": 48,
+        "cardsAdded": [
+          "BT6-011"
+        ],
+        "note": "inherited + limit + exists nameContains + destroy dpMax"
+      },
+      {
+        "batch": 49,
+        "cardsAdded": [
+          "BT6-071"
+        ],
+        "note": "inherited on_attack + cost:discard_hand + destroy lvIs:3"
       }
     ]
   },
@@ -9797,6 +9818,101 @@
               "zone": "battle",
               "type": "デジモン",
               "count": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT7-032": {
+    "_name": "パルスモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch47) ※evolved原文「アタック時ターン1回 自分のセキュリティが3枚なら メモリー+2」。inherited on_attack + limit + zoneCount sec==3 + memory +2",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "==",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "memory",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-011": {
+    "_name": "バオハックモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch48) 「アタック時[ターン1回] シスタモン名称の自分のデジモンがいるとき DP5000以下の相手1体を消滅」。inherited on_attack + limit + exists nameContains + destroy dpMax",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "デジモン",
+            "filter": {
+              "nameContains": [
+                "シスタモン"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "dpMax": 5000
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "BT6-071": {
+    "_name": "キンカクモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch49) 「アタック時 自分の手札を1枚破棄することで Lv.3の相手1体を消滅」。inherited on_attack + cost:[discard_hand] + destroy lvIs:3",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 1
+          }
+        ],
+        "actions": [
+          {
+            "op": "destroy",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1,
+              "filter": {
+                "lvIs": 3
+              }
             }
           }
         ]
