@@ -11,7 +11,7 @@
     "_engine_fixes_opus": "第3-4セッション(Opus)でv5 HTMLに2件のエンジン修正を適用(いずれも実証再現→修正→回帰85/0)。①ターン終了バグ: checkTurnEnd()のモーダル閉分岐がeffectQueueの残りを確認せず300ms後にendMyTurnをスケジュール→同時誘発で片方処理後にメモリーが渡ると残り効果が落ちる。修正=保留条件にqueueBusy(effectQueue.length>0||effectQueueRunning||_edbBusy||_simultaneousEffects残)を追加し、キューが空くまでpendingTurnEndで保留(processEffectQueue/closeModalが空時に発火)。検証=test_turnend_bug-version-Opus.js 5/0(デッドロック反証込み)。②EDBオプションsecurity不発: triggerEffect('セキュリティ効果')が(a)EDB_TRIGGER_JP未マップで'security'に変換されず(b)edbEnqueueTriggeredがfx.effectsのみ読みfx.securityを無視→全EDBオプションのsecurity:[]ブロックが皆無発火だった(ST1-16等既存も含む)。修正=(a)EDB_TRIGGER_JPに'セキュリティ効果':'security'追加(b)triggerEffectで_edbEv==='security'時にfx.securityをedbEnqueueTriggeredで別途ディスパッチ。検証=ST1-16/EX12-073両方のsecurityが発火確認。③実セキュリティフリップ未発火(実証修正): 実機でST1-16/EX12-073/BT9-095をセキュリティアタックで公開しても効果が出ずトラッシュ直行と報告(ユーザ実証)。原因=doSecurityCheckChainのオプション分岐が公開カードをoppTrashへ送りfireSpecialTrigger('onSecurityBattle')を撃つだけで、公開オプション自身の'security'ブロックを一切解決していなかった(triggerEffect('セキュリティ効果')経由とは別経路)。修正=オプション公開時、EDB登録済み(fx.security有)なら『所有者(守備側)視点』で自動解決する。具体的には_securitySwapSides()でG.my*↔G.opp*の参照を一時入替→triggerEffect(secInst,'セキュリティ効果')→_afterSecuritySettles()で効果キュー/モーダルが落ち着くのを待ち視点を復元してからチェーン継続。これにより『このカードをバトルエリアに置く』(place_self_battleはmyBattleArea固定)→守備側の場へ、『相手のデジモン消滅』(side:'opp')→攻撃側を対象、と正しく解決される。EDB未登録オプションは_parsed_securityがaction:'unknown'等で不安定なため従来どおりトラッシュのみ(=securityを動かすにはEDB登録が必要)。検証=test_security_flip-version-Opus.js 6/0(EX12-073→守備側場/攻撃側不干渉/ST1-16→攻撃側消滅/通常デジモン回帰)。【ダブルモード注意】G=GD[activePlayer]のため入替は一時的にGD[active]の配列も変えるがsettleコールバックで必ず復元(net-zero)。 【限界】memoryは符号付き単一ゲージで側概念が配列と異なるため入替対象外＝security内でmemory/satkを操作するカード(ST2-13等)はフリップ時に攻撃側視点で解決され得る。消滅/配置/draw/recovery/bounce/devolve/moveは入替済配列で正しい。 / [B1] edbCheckConditionに selfSource 条件を追加(自分の進化元stackに名称/特徴一致カードがあるか)。既存挙動不変(新規entryのみ作用)・回帰85/0維持。HTMLに直接実装(edb_module.jsは本環境に無し)。validatorのKNOWN_COND_KEYSにも追加。",
     "_bt9095": "BT9-095「ガイアフォースZERO」(赤オプション・確定165枚目)を追加。【メイン】DP13000以下の相手デジモン1体消滅。security=相手デジモン1体消滅。実機でフリップ未発火と報告された3枚(ST1-16/EX12-073/BT9-095)のうちBT9-095のみEDB未登録だったため追加。【手動】使用コスト-2(X抗体進化元条件)/その後グレイモン名称デジモンでアタック=opが無く未対応。",
     "_lm_scramble": "LM-027〜032「○○・スクランブル」6色（赤/青/黄/緑/黒/紫）を追加（確定166〜171枚目）。ユーザ実機報告「メインの進化コスト-3で進化が機能しない」に対応。EDB未登録だったため追加＋evolve opを拡張（costReduction指定時は固定costでなくgetEvoCostでbase→targetの正規進化コストを算出し軽減、進化ルールcanEvolveOnto準拠の組合せのみ対象。未指定は従来固定cost＝ST14-02不変）。security=自分トラッシュから同色DP2000以下を無料登場(play from:trash free)はFIX#3のフリップ経路で守備側視点解決される。【手動】ディレイ内容(デッキ戻し＋条件付き無料登場)・security自己手札戻しは未対応で通知。",
-    "_lastUpdated": "2026-06-26",
+    "_lastUpdated": "2026-06-27",
     "_batchHistory": [
       {
         "batch": 37,
@@ -67,6 +67,48 @@
           "BT1-101-P1"
         ],
         "note": "既存EDBオプションの完全リプリント34枚追加（effect/sec完全一致＝同型動作保証）"
+      },
+      {
+        "batch": "38-39-revert",
+        "date": "2026-06-26",
+        "note": "batch38/39 で追加した -P\\d+$ サフィックス付き計138件 + batch37 のリプリント4件(ST1-12-P1, ST1-12-P2, BT2-087-P1, BT2-087-P2)を取り消し。edbFx(line 17138-17139)が -P\\d+$ サフィックスを除去して base エントリを共有する設計のため、個別登録は冗長かつ test_edb('ST14-02-P1' === 'ST14-02') / test_b2_trashsource('ST2-09-P1' === 'ST2-09') の不変条件に違反。本セッションでの真の新規は batch37 の 3件 (ST2-12, BT2-087, BT3-095) のみ。§0.5-6 設計意図(現状維持)を見落としていた反省点として明記。"
+      },
+      {
+        "batch": 40,
+        "date": "2026-06-26",
+        "cardsAdded": [
+          "BT1-079"
+        ],
+        "note": "notHasKeyword残2枚のうち書ける1枚(BT1-079リリモン)。BT6-054は反応トリガ複合のため見送り"
+      },
+      {
+        "batch": 41,
+        "date": "2026-06-27",
+        "cardsAdded": [
+          "ST2-06"
+        ],
+        "note": "ST2-06 ガルルモン (進化元 on_attack trash_source from:bottom count:1)。既存類例 ST2-09 が on_evolve 版、BT1-079 が on_attack inherited版"
+      },
+      {
+        "batch": 42,
+        "date": "2026-06-27",
+        "cardsAdded": [
+          "ST2-03",
+          "BT2-025",
+          "BT3-023",
+          "BT3-026",
+          "BT4-028",
+          "BT8-025"
+        ],
+        "note": "inherited on_attack + trash_source 同型6枚(ST2-03/BT2-025/BT3-023/BT3-026/BT4-028/BT8-025)。ST2-06(batch41)と同系統"
+      },
+      {
+        "batch": 43,
+        "date": "2026-06-27",
+        "cardsAdded": [
+          "BT8-037"
+        ],
+        "note": "BT8-037 ディノヒューモン (inherited on_attack dp_mod opp -1000)。ST3-08/BT3-033/BT3-035 と完全同型"
       }
     ]
   },
@@ -9276,68 +9318,6 @@
       }
     ]
   },
-  "ST1-12-P1": {
-    "_name": "八神太一",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch37) ※原文照合「本体:自分のターン 自分のデジモン全てDP+1000 / sec:このカードをコストを支払わずに登場させる」。ST1-12 と同型のリプリント。",
-    "effects": [
-      {
-        "kind": "static",
-        "grant": {
-          "op": "dp_mod",
-          "value": 1000,
-          "turn": "my",
-          "target": {
-            "side": "my",
-            "zone": "battle",
-            "type": "デジモン"
-          }
-        }
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "security_play_self"
-          }
-        ]
-      }
-    ]
-  },
-  "ST1-12-P2": {
-    "_name": "八神太一",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch37) ※原文照合「本体:自分のターン 自分のデジモン全てDP+1000 / sec:このカードをコストを支払わずに登場させる」。ST1-12 と同型のリプリント。",
-    "effects": [
-      {
-        "kind": "static",
-        "grant": {
-          "op": "dp_mod",
-          "value": 1000,
-          "turn": "my",
-          "target": {
-            "side": "my",
-            "zone": "battle",
-            "type": "デジモン"
-          }
-        }
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "security_play_self"
-          }
-        ]
-      }
-    ]
-  },
   "ST2-12": {
     "_name": "石田ヤマト",
     "_verified": true,
@@ -9412,78 +9392,6 @@
       }
     ]
   },
-  "BT2-087-P1": {
-    "_name": "八神ヒカリ",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch37) BT2-087と同型リプリント。",
-    "effects": [
-      {
-        "kind": "triggered",
-        "trigger": "turn_start",
-        "condition": {
-          "zoneCount": {
-            "side": "my",
-            "zone": "security",
-            "op": "<=",
-            "value": 3
-          }
-        },
-        "actions": [
-          {
-            "op": "memory",
-            "value": 1
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "security_play_self"
-          }
-        ]
-      }
-    ]
-  },
-  "BT2-087-P2": {
-    "_name": "八神ヒカリ",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch37) BT2-087と同型リプリント。",
-    "effects": [
-      {
-        "kind": "triggered",
-        "trigger": "turn_start",
-        "condition": {
-          "zoneCount": {
-            "side": "my",
-            "zone": "security",
-            "op": "<=",
-            "value": 3
-          }
-        },
-        "actions": [
-          {
-            "op": "memory",
-            "value": 1
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "security_play_self"
-          }
-        ]
-      }
-    ]
-  },
   "BT3-095": {
     "_name": "城戸丈",
     "_verified": true,
@@ -9522,2014 +9430,62 @@
       }
     ]
   },
-  "ST14-12-P1": {
-    "_name": "犬猿の凶弾",
+  "BT1-079": {
+    "_name": "リリモン",
     "_verified": true,
-    "effects": [
+    "_memo": "P2 hand-authored (Opus・batch40) ※原文照合「evolved:アタック時 ブロッカーを持たない相手のデジモン1体をレスト」。effect/sec=null。inherited=triggered on_attack → rest selector(opp battle デジモン count:1 filter:{notHasKeyword:'ブロッカー'})。既存類例: BT1-066 テントモン(同形/filter:dpMax) BT6-051 トロピアモン(同形/filter:dpMax)。notHasKeyword は batch34 で実装済。",
+    "inherited": [
       {
         "kind": "triggered",
-        "trigger": "on_trashed_from_deck",
+        "trigger": "on_attack",
         "actions": [
           {
-            "op": "place_self_battle",
-            "optional": true
-          }
-        ]
-      },
-      {
-        "kind": "triggered",
-        "trigger": "main",
-        "actions": [
-          {
-            "op": "destroy",
-            "special": "highest_lv",
+            "op": "rest",
             "selector": {
               "side": "opp",
               "zone": "battle",
               "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      },
-      {
-        "kind": "triggered",
-        "trigger": "main",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "自分のトラッシュから、紫のデジモンカード/テイマーカード1枚を手札に戻す。"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "kind": "triggered",
-        "trigger": "security",
-        "actions": [
-          {
-            "op": "destroy",
-            "special": "highest_lv",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "_memo": "P2 hand-authored (Opus・batch38) ST14-12 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: (なし)"
-  },
-  "ST1-16-P1": {
-    "_name": "ガイアフォース",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST1-16 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
+              "count": 1,
+              "filter": {
+                "notHasKeyword": "ブロッカー"
+              }
             }
           }
         ]
       }
     ]
   },
-  "ST1-16-P2": {
-    "_name": "ガイアフォース",
+  "ST2-06": {
+    "_name": "ガルルモン",
     "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST1-16 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
+    "_memo": "P2 hand-authored (Opus・batch41) ※原文照合「evolved:アタック時 相手のデジモン1体の進化元を下から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source selector(opp battle デジモン) from:bottom count:1。既存類例: ST2-09 ズドモン(on_evolve版・count:2)、BT1-079 リリモン(on_attack inherited・rest)。trash_source は batch20 で実装済・test_b2_trashsource で機構実証済。parallel(-P除去)は edbFx で自動共有。",
+    "inherited": [
       {
-        "trigger": "main",
         "kind": "triggered",
+        "trigger": "on_attack",
         "actions": [
           {
-            "op": "destroy",
+            "op": "trash_source",
             "selector": {
               "side": "opp",
               "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "ST1-16-P3": {
-    "_name": "ガイアフォース",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST1-16 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "ST2-16-P1": {
-    "_name": "コキュートスブレス",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST2-16 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "bounce",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
+              "type": "デジモン"
             },
-            "to": "hand"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "bounce",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            },
-            "to": "hand"
-          }
-        ]
-      }
-    ]
-  },
-  "ST2-16-P2": {
-    "_name": "コキュートスブレス",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST2-16 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "bounce",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            },
-            "to": "hand"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "bounce",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            },
-            "to": "hand"
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-107-P1": {
-    "_name": "改心の波動",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-107 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 B2 hand-authored (Opus) ※原文照合済。オプション：mainはedbEnqueueTriggered('main')で発火、secu",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "recovery",
-            "count": 1
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "recovery",
+            "from": "bottom",
             "count": 1
           }
         ]
       }
     ]
   },
-  "LM-027-P1": {
-    "_name": "レッド・スクランブル",
+  "ST2-03": {
+    "_name": "ガブモン",
     "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-027 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(赤)。【メイン】赤の自分デジモン1体を手札の赤デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 Lv.5以下の相手1体の進化元 下から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:bottom count:1 filter:{\"lvMax\":5}。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
       {
-        "trigger": "main",
         "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから赤のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから赤のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(レッド・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-027-P2": {
-    "_name": "レッド・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-027 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(赤)。【メイン】赤の自分デジモン1体を手札の赤デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから赤のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから赤のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(レッド・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-027-P3": {
-    "_name": "レッド・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-027 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(赤)。【メイン】赤の自分デジモン1体を手札の赤デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから赤のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから赤のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "赤"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(レッド・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-028-P1": {
-    "_name": "ブルー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-028 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(青)。【メイン】青の自分デジモン1体を手札の青デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから青のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから青のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブルー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-028-P2": {
-    "_name": "ブルー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-028 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(青)。【メイン】青の自分デジモン1体を手札の青デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから青のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから青のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブルー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-028-P3": {
-    "_name": "ブルー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-028 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(青)。【メイン】青の自分デジモン1体を手札の青デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから青のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから青のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "青"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブルー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-029-P1": {
-    "_name": "イエロー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-029 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黄)。【メイン】黄の自分デジモン1体を手札の黄デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黄のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黄のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(イエロー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-029-P2": {
-    "_name": "イエロー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-029 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黄)。【メイン】黄の自分デジモン1体を手札の黄デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黄のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黄のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(イエロー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-029-P3": {
-    "_name": "イエロー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-029 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黄)。【メイン】黄の自分デジモン1体を手札の黄デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黄のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黄のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(イエロー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-029-P4": {
-    "_name": "イエロー・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-029 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黄)。【メイン】黄の自分デジモン1体を手札の黄デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黄のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黄のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黄"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(イエロー・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-030-P1": {
-    "_name": "グリーン・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-030 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(緑)。【メイン】緑の自分デジモン1体を手札の緑デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから緑のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから緑のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(グリーン・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-030-P2": {
-    "_name": "グリーン・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-030 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(緑)。【メイン】緑の自分デジモン1体を手札の緑デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから緑のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから緑のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(グリーン・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-030-P3": {
-    "_name": "グリーン・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-030 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(緑)。【メイン】緑の自分デジモン1体を手札の緑デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから緑のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから緑のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "緑"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(グリーン・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-031-P1": {
-    "_name": "ブラック・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-031 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黒)。【メイン】黒の自分デジモン1体を手札の黒デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黒のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黒のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブラック・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-031-P2": {
-    "_name": "ブラック・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-031 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黒)。【メイン】黒の自分デジモン1体を手札の黒デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黒のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黒のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブラック・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-031-P3": {
-    "_name": "ブラック・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-031 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(黒)。【メイン】黒の自分デジモン1体を手札の黒デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから黒のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから黒のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "黒"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ブラック・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-032-P1": {
-    "_name": "ヴァイオレット・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-032 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(紫)。【メイン】紫の自分デジモン1体を手札の紫デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから紫のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから紫のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ヴァイオレット・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-032-P2": {
-    "_name": "ヴァイオレット・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-032 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(紫)。【メイン】紫の自分デジモン1体を手札の紫デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから紫のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから紫のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ヴァイオレット・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "LM-032-P3": {
-    "_name": "ヴァイオレット・スクランブル",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) LM-032 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: B2 hand-authored (Opus) ※原文照合。オプション(紫)。【メイン】紫の自分デジモン1体を手札の紫デジモンへ「支払う進化コスト-3」で進化（",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "evolve",
-            "base": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "target": {
-              "from": [
-                "hand"
-              ],
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ]
-              }
-            },
-            "costReduction": 3,
-            "optional": true
-          }
-        ]
-      },
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "delay",
-            "text": "（自分のターン開始時、相手のデジモンがいるなら）自分のトラッシュから紫のデジモンカード1枚をデッキの上に戻す。その後、自分のデジモンがいないなら、自分のトラッシュから紫のDP2000以下のデジモンカード1枚をコストを支払わずに登場"
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "play",
-            "from": "trash",
-            "selector": {
-              "type": "デジモン",
-              "filter": {
-                "colorAny": [
-                  "紫"
-                ],
-                "dpMax": 2000
-              },
-              "count": 1
-            },
-            "costMod": "free"
-          },
-          {
-            "op": "manual",
-            "text": "その後、このカード(ヴァイオレット・スクランブル)を手札に加える"
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-108-P1": {
-    "_name": "ホーンバスター",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-108 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション) ※原文照合「メイン:このターン 自分1体DP+3000 / sec:相手1体レスト その後手札に加え",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "dp_mod",
-            "value": 3000,
-            "selector": {
-              "side": "my",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          },
-          {
-            "op": "return_self_to_hand"
-          }
-        ]
-      }
-    ]
-  },
-  "ST3-14-P1": {
-    "_name": "ヘブンズチャーム",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST3-14 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/sec単独手札) ※原文照合「main:このターン 相手1体DP-2000 / sec:このカードを手",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "dp_mod",
-            "value": -2000,
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "return_self_to_hand"
-          }
-        ]
-      }
-    ]
-  },
-  "BT4-111-P1": {
-    "_name": "ジャックレイド",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT4-111 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/memory.perCount) ※原文照合「main:自分のトラッシュ10枚ごとにメモリー+1 / ",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "memory",
-            "value": 1,
-            "perCount": {
-              "side": "my",
-              "zone": "trash"
-            },
-            "perCountUnit": 10
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "memory",
-            "value": 2
-          }
-        ]
-      }
-    ]
-  },
-  "ST6-15-P1": {
-    "_name": "デスクロウ",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) ST6-15 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/cost-gate ※原文照合「main:自分1体消滅 cost→Lv.4以下相手1体消滅」。bloc",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "cost": [
-          {
-            "op": "destroy_own"
-          }
-        ],
-        "actions": [
-          {
-            "op": "destroy",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "lvMax": 4
-              },
-              "count": 1
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-110-P1": {
-    "_name": "フラウカノン",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-110 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/notHasKW新) ※原文照合「main:相手1体レスト / sec:ブロッカーを持たない相手全レス",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "notHasKeyword": "ブロッカー"
-              },
-              "count": 99
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-110-P2": {
-    "_name": "フラウカノン",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-110 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/notHasKW新) ※原文照合「main:相手1体レスト / sec:ブロッカーを持たない相手全レス",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "notHasKeyword": "ブロッカー"
-              },
-              "count": 99
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-110-P3": {
-    "_name": "フラウカノン",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-110 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/notHasKW新) ※原文照合「main:相手1体レスト / sec:ブロッカーを持たない相手全レス",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "count": 1
-            }
-          }
-        ]
-      }
-    ],
-    "security": [
-      {
-        "trigger": "security",
-        "kind": "triggered",
-        "actions": [
-          {
-            "op": "rest",
-            "selector": {
-              "side": "opp",
-              "zone": "battle",
-              "type": "デジモン",
-              "filter": {
-                "notHasKeyword": "ブロッカー"
-              },
-              "count": 99
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "BT1-101-P1": {
-    "_name": "ネイルクラッシャー",
-    "_verified": true,
-    "_memo": "P2 hand-authored (Opus・batch38) BT1-101 と同型リプリント。effect/security_effect が完全一致するため元エントリのEDB構造を流用。元memo: P2 hand-authored (Opus・オプション/trash_source 拡張) ※原文照合「main:相手全ての進化元を全て破棄 / sec:メイン",
-    "effects": [
-      {
-        "trigger": "main",
-        "kind": "triggered",
+        "trigger": "on_attack",
         "actions": [
           {
             "op": "trash_source",
@@ -11537,27 +9493,150 @@
               "side": "opp",
               "zone": "battle",
               "type": "デジモン",
-              "count": 99
+              "filter": {
+                "lvMax": 5
+              }
             },
-            "count": 99
+            "from": "bottom",
+            "count": 1
           }
         ]
       }
-    ],
-    "security": [
+    ]
+  },
+  "BT2-025": {
+    "_name": "イッカクモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 相手1体の進化元 上から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:top count:1。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
       {
-        "trigger": "security",
         "kind": "triggered",
+        "trigger": "on_attack",
         "actions": [
           {
             "op": "trash_source",
             "selector": {
               "side": "opp",
               "zone": "battle",
-              "type": "デジモン",
-              "count": 99
+              "type": "デジモン"
             },
-            "count": 99
+            "from": "top",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-023": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 相手1体の進化元 下から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:bottom count:1。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-026": {
+    "_name": "ホーリーエンジェモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 相手1体の進化元 下から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:bottom count:1。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT4-028": {
+    "_name": "ピラニモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 相手1体の進化元 上から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:top count:1。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "top",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT8-025": {
+    "_name": "フックモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch42) ※原文照合「evolved:アタック時 相手1体の進化元 下から1枚破棄」。effect/sec=null。inherited=triggered on_attack → trash_source from:bottom count:1。既存類例 ST2-06 batch41 と同系統。trash_source は batch20 で実装済。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT8-037": {
+    "_name": "ディノヒューモン",
+    "_verified": true,
+    "_memo": "P2 hand-authored (Opus・batch43) ※原文照合「evolved:アタック時 このターンの間 相手1体DP-1000」。effect/sec=null。inherited=triggered on_attack → dp_mod opp count:1 value:-1000。既存類例 ST3-08/BT3-033/BT3-035 と完全同型(表記揺れ「DPを-1000する」⇔「DP-1000」のみ)。",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "dp_mod",
+            "value": -1000,
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン",
+              "count": 1
+            }
           }
         ]
       }
