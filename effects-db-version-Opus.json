@@ -216,6 +216,13 @@
           "BT10-023"
         ],
         "note": "effects 2節: on_evolve+condition+draw / on_attack+limit+condition+cost+activate_self"
+      },
+      {
+        "batch": 60,
+        "cardsAdded": [
+          "BT3-051"
+        ],
+        "note": "reveal_deck_top + select×2 (Lv.5/Lv.6別取り) + dispose trash"
       }
     ]
   },
@@ -10455,6 +10462,51 @@
         "actions": [
           {
             "op": "activate_self"
+          }
+        ]
+      }
+    ]
+  },
+  "BT3-051": {
+    "_name": "ドクグモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch60) 「登場時 デッキ上3枚オープン Lv.5とLv.6デジモン1枚ずつ手札 残破棄」。reveal_deck_top + select_from_revealed×2 + dispose_revealed (ST14-11と類似構造、フィルタ2種別取り)",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "reveal_deck_top",
+            "count": 3
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 5
+              },
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "select_from_revealed",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "lvIs": 6
+              },
+              "count": 1,
+              "upTo": true
+            },
+            "to": "hand"
+          },
+          {
+            "op": "dispose_revealed",
+            "to": "trash"
           }
         ]
       }
