@@ -16271,7 +16271,16 @@ function executeActionNode(node, inst) {
 
 function openOptionalActionModal(node, inst) {
   const label = getActionLabel(node);
-  let html = `<p style="font-size:12px;margin-bottom:8px;color:var(--text-dim);">発動しますか？</p>`;
+  // [Opus・batch51] 発動元カード名と効果文を明示表示（ta~yuさんからのUI改善要望）
+  const card = inst ? getCard(inst.cardId) : null;
+  const cardName = card?.name || '(発動元不明)';
+  let html = `<div style="font-size:13px;margin-bottom:10px;padding:8px 10px;background:rgba(99,102,241,0.12);border-left:3px solid var(--accent,#6366f1);border-radius:4px;">
+    <div style="color:var(--text-dim);font-size:10px;letter-spacing:0.05em;">発動元</div>
+    <div style="font-weight:bold;font-size:14px;margin-top:2px;">${cardName}</div>
+    <div style="font-size:12px;margin-top:6px;color:var(--text-dim);">効果</div>
+    <div style="font-size:12px;margin-top:2px;">${label}</div>
+  </div>`;
+  html += `<p style="font-size:12px;margin-bottom:8px;color:var(--text-dim);">発動しますか？</p>`;
   html += `<div class="modal-action-row" style="gap:8px;">
     <button class="modal-btn primary" onclick="confirmOptionalAction()">✅ 発動する</button>
     <button class="modal-btn" onclick="skipOptionalAction()">❌ 発動しない</button>
@@ -17748,11 +17757,27 @@ function edbRenderPick() {
   const count = p.opt.count || 1;
   let html = `<p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">
     ${p.opt.note||''}（${p.opt.upTo?`0〜${count}枚`:`${count}枚`}選択）</p>`;
-  html += `<div class="modal-action-row" style="flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;">`;
+  html += `<div style="display:flex;flex-direction:column;gap:4px;max-height:50vh;overflow-y:auto;">`;
+  // [Opus・batch51] 候補に画像とLv/DP情報を追加（ta~yuさんからのUI改善要望）
+  const ZONE_JP = { hand:'手札', trash:'トラッシュ', revealed:'オープン', source:'進化元', security:'セキュリティ', deck:'デッキ' };
+  const imgBase = (typeof CARD_IMG_BASE !== 'undefined') ? CARD_IMG_BASE : '';
   p.items.forEach((it, i) => {
     const seld = p.sel.includes(i);
-    html += `<button class="modal-btn ${seld?'warn':'primary'}" onclick="edbTogglePick(${i})">
-      ${seld?'✓ ':''}${it.label}${it.zone&&it.zone!=='battle'?`【${({hand:'手札',trash:'トラッシュ',revealed:'オープン',source:'進化元',security:'セキュリティ',deck:'デッキ'})[it.zone]||it.zone}】`:''}</button>`;
+    const cId = it.kind === 'inst' ? it.inst.cardId : it.cId;
+    const c = getCard(cId);
+    const dpStr = (it.kind === 'inst') ? (typeof getDP === 'function' ? ` DP${getDP(it.inst)}` : (c?.dp?` DP${c.dp}`:''))
+                                       : (c?.dp ? ` DP${c.dp}` : '');
+    const lvStr = c?.level ? `Lv.${c.level}` : (c?.type==='テイマー' ? 'テイマー' : (c?.type==='オプション' ? 'オプション' : ''));
+    const zoneTag = (it.zone && it.zone !== 'battle') ? `【${ZONE_JP[it.zone]||it.zone}】` : '';
+    const restTag = (it.kind === 'inst' && it.inst.isRested) ? '（レスト）' : '';
+    const imgUrl = imgBase ? `${imgBase}/${encodeURIComponent(cId)}.png` : '';
+    html += `<button class="modal-btn ${seld?'warn':'primary'}" onclick="edbTogglePick(${i})" style="display:flex;align-items:center;gap:8px;padding:6px 8px;text-align:left;width:100%;">
+      ${imgUrl ? `<img src="${imgUrl}" style="width:36px;height:50px;object-fit:cover;border-radius:3px;flex-shrink:0;background:rgba(255,255,255,0.05);" onerror="this.style.display='none'">` : ''}
+      <div style="flex:1;min-width:0;line-height:1.3;">
+        <div style="font-weight:bold;font-size:13px;">${seld?'✓ ':''}${c?.name||cId}${zoneTag}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${lvStr}${dpStr}${restTag}</div>
+      </div>
+    </button>`;
   });
   html += `</div>`;
   html += `<div class="modal-action-row" style="margin-top:8px;">

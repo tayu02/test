@@ -147,6 +147,13 @@
           "BT6-071"
         ],
         "note": "inherited on_attack + cost:discard_hand + destroy lvIs:3"
+      },
+      {
+        "batch": 50,
+        "cardsAdded": [
+          "BT2-078"
+        ],
+        "note": "inherited + limit + cost:destroy_own(other:true) + activate_self"
       }
     ]
   },
@@ -9914,6 +9921,29 @@
                 "lvIs": 3
               }
             }
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-078": {
+    "_name": "ワーガルルモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch50) 「アタック時ターン1回 他の自分1体を消滅させることで このデジモンをアクティブ」。inherited on_attack + limit + cost:[destroy_own other:true] + activate_self。既存類例 BT2-077(コスト destroy_own other:true) / BT1-036(activate)",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "cost": [
+          {
+            "op": "destroy_own",
+            "other": true
+          }
+        ],
+        "actions": [
+          {
+            "op": "activate_self"
           }
         ]
       }
