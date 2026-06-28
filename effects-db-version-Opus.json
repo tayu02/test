@@ -177,6 +177,45 @@
           "ST16-09"
         ],
         "note": "effects on_destroy/on_play + play from + costMod:free 系 2枚"
+      },
+      {
+        "batch": 55,
+        "cardsAdded": [
+          "BT11-038",
+          "BT12-054"
+        ],
+        "note": "effects on_destroy + play + costMod:free + (or condition / multiple nameContains)"
+      },
+      {
+        "batch": 56,
+        "cardsAdded": [
+          "BT1-021",
+          "BT1-040",
+          "BT1-058",
+          "BT1-075"
+        ],
+        "note": "EFF_ATK_MEM_+3 + EFF_TURN_END_MEM_-3 同型4枚"
+      },
+      {
+        "batch": 57,
+        "cardsAdded": [
+          "P-007"
+        ],
+        "note": "inherited + condition:{self filter:nameContains} + draw"
+      },
+      {
+        "batch": 58,
+        "cardsAdded": [
+          "BT2-039"
+        ],
+        "note": "effects 2節: on_play+recovery条件付 / on_attack+play costMod:free"
+      },
+      {
+        "batch": 59,
+        "cardsAdded": [
+          "BT10-023"
+        ],
+        "note": "effects 2節: on_evolve+condition+draw / on_attack+limit+condition+cost+activate_self"
       }
     ]
   },
@@ -10105,6 +10144,317 @@
               "count": 1
             },
             "costMod": "free"
+          }
+        ]
+      }
+    ]
+  },
+  "BT11-038": {
+    "_name": "エンジェモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch55) 「消滅時 紫の自分デジモンかテイマー居→トラッシュからデビモン1枚コスト無し登場」。or condition + play + costMod:free",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "condition": {
+          "or": [
+            {
+              "exists": {
+                "side": "my",
+                "zone": "battle",
+                "type": "デジモン",
+                "filter": {
+                  "colorAny": [
+                    "紫"
+                  ]
+                }
+              }
+            },
+            {
+              "exists": {
+                "side": "my",
+                "zone": "battle",
+                "type": "テイマー",
+                "filter": {
+                  "colorAny": [
+                    "紫"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "actions": [
+          {
+            "op": "play",
+            "from": "trash",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "デビモン"
+                ]
+              },
+              "count": 1
+            },
+            "costMod": "free"
+          }
+        ]
+      }
+    ]
+  },
+  "BT12-054": {
+    "_name": "ジャガモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch55) 「消滅時 手札からヤキイモンorポテモン2枚までコスト無し登場」。filter:{nameContains:[ヤキイモン,ポテモン]} + count:2 upTo + costMod:free",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "play",
+            "from": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "ヤキイモン",
+                  "ポテモン"
+                ]
+              },
+              "count": 2,
+              "upTo": true
+            },
+            "costMod": "free"
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-021": {
+    "_name": "メタルグレイモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch56) Pattern: 「アタック時メモリー+3。このターン終了時メモリー-3」=ターン中だけメモリー加速。effects: on_attack memory:3 + turn_end memory:-3。4枚同型",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "turn_end",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -3
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-040": {
+    "_name": "ワーガルルモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch56) Pattern: 「アタック時メモリー+3。このターン終了時メモリー-3」=ターン中だけメモリー加速。effects: on_attack memory:3 + turn_end memory:-3。4枚同型",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "turn_end",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -3
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-058": {
+    "_name": "チィリンモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch56) Pattern: 「アタック時メモリー+3。このターン終了時メモリー-3」=ターン中だけメモリー加速。effects: on_attack memory:3 + turn_end memory:-3。4枚同型",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "turn_end",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -3
+          }
+        ]
+      }
+    ]
+  },
+  "BT1-075": {
+    "_name": "デジタマモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch56) Pattern: 「アタック時メモリー+3。このターン終了時メモリー-3」=ターン中だけメモリー加速。effects: on_attack memory:3 + turn_end memory:-3。4枚同型",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "memory",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "turn_end",
+        "actions": [
+          {
+            "op": "memory",
+            "value": -3
+          }
+        ]
+      }
+    ]
+  },
+  "P-007": {
+    "_name": "ガルルモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch57) 「アタック時 親の名称が「ガルルモン」含むなら 1ドロー」。inherited on_attack + condition:{self filter:nameContains} + draw 1。既存類例 BT5-010 で self:{nameContains:[...]} 実績",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "condition": {
+          "self": {
+            "nameContains": [
+              "ガルルモン"
+            ]
+          }
+        },
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT2-039": {
+    "_name": "ホーリードラモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch58) 2節カード: 「登場時 sec<=3 → recovery+2」+「アタック時 手札から黄Lv.3コスト無し登場」。前半=BT2-034類似(EFF_DESTROY_RECOVERY_1_SEC≤3)、後半=BT5-074類似(effects play costMod:free)",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "security",
+            "op": "<=",
+            "value": 3
+          }
+        },
+        "actions": [
+          {
+            "op": "recovery",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "actions": [
+          {
+            "op": "play",
+            "from": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "黄"
+                ],
+                "lvIs": 3
+              },
+              "count": 1
+            },
+            "costMod": "free"
+          }
+        ]
+      }
+    ]
+  },
+  "BT10-023": {
+    "_name": "テティスモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch59) 2節カード: 「進化時 手札6枚以下→2ドロー」+「アタック時ターン1回 手札8枚以上→手札2枚破棄でアクティブ」。effects 2ブロック",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": "<=",
+            "value": 6
+          }
+        },
+        "actions": [
+          {
+            "op": "draw",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "zoneCount": {
+            "side": "my",
+            "zone": "hand",
+            "op": ">=",
+            "value": 8
+          }
+        },
+        "cost": [
+          {
+            "op": "discard_hand",
+            "count": 2
+          }
+        ],
+        "actions": [
+          {
+            "op": "activate_self"
           }
         ]
       }
