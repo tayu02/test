@@ -11,7 +11,7 @@
     "_engine_fixes_opus": "第3-4セッション(Opus)でv5 HTMLに2件のエンジン修正を適用(いずれも実証再現→修正→回帰85/0)。①ターン終了バグ: checkTurnEnd()のモーダル閉分岐がeffectQueueの残りを確認せず300ms後にendMyTurnをスケジュール→同時誘発で片方処理後にメモリーが渡ると残り効果が落ちる。修正=保留条件にqueueBusy(effectQueue.length>0||effectQueueRunning||_edbBusy||_simultaneousEffects残)を追加し、キューが空くまでpendingTurnEndで保留(processEffectQueue/closeModalが空時に発火)。検証=test_turnend_bug-version-Opus.js 5/0(デッドロック反証込み)。②EDBオプションsecurity不発: triggerEffect('セキュリティ効果')が(a)EDB_TRIGGER_JP未マップで'security'に変換されず(b)edbEnqueueTriggeredがfx.effectsのみ読みfx.securityを無視→全EDBオプションのsecurity:[]ブロックが皆無発火だった(ST1-16等既存も含む)。修正=(a)EDB_TRIGGER_JPに'セキュリティ効果':'security'追加(b)triggerEffectで_edbEv==='security'時にfx.securityをedbEnqueueTriggeredで別途ディスパッチ。検証=ST1-16/EX12-073両方のsecurityが発火確認。③実セキュリティフリップ未発火(実証修正): 実機でST1-16/EX12-073/BT9-095をセキュリティアタックで公開しても効果が出ずトラッシュ直行と報告(ユーザ実証)。原因=doSecurityCheckChainのオプション分岐が公開カードをoppTrashへ送りfireSpecialTrigger('onSecurityBattle')を撃つだけで、公開オプション自身の'security'ブロックを一切解決していなかった(triggerEffect('セキュリティ効果')経由とは別経路)。修正=オプション公開時、EDB登録済み(fx.security有)なら『所有者(守備側)視点』で自動解決する。具体的には_securitySwapSides()でG.my*↔G.opp*の参照を一時入替→triggerEffect(secInst,'セキュリティ効果')→_afterSecuritySettles()で効果キュー/モーダルが落ち着くのを待ち視点を復元してからチェーン継続。これにより『このカードをバトルエリアに置く』(place_self_battleはmyBattleArea固定)→守備側の場へ、『相手のデジモン消滅』(side:'opp')→攻撃側を対象、と正しく解決される。EDB未登録オプションは_parsed_securityがaction:'unknown'等で不安定なため従来どおりトラッシュのみ(=securityを動かすにはEDB登録が必要)。検証=test_security_flip-version-Opus.js 6/0(EX12-073→守備側場/攻撃側不干渉/ST1-16→攻撃側消滅/通常デジモン回帰)。【ダブルモード注意】G=GD[activePlayer]のため入替は一時的にGD[active]の配列も変えるがsettleコールバックで必ず復元(net-zero)。 【限界】memoryは符号付き単一ゲージで側概念が配列と異なるため入替対象外＝security内でmemory/satkを操作するカード(ST2-13等)はフリップ時に攻撃側視点で解決され得る。消滅/配置/draw/recovery/bounce/devolve/moveは入替済配列で正しい。 / [B1] edbCheckConditionに selfSource 条件を追加(自分の進化元stackに名称/特徴一致カードがあるか)。既存挙動不変(新規entryのみ作用)・回帰85/0維持。HTMLに直接実装(edb_module.jsは本環境に無し)。validatorのKNOWN_COND_KEYSにも追加。",
     "_bt9095": "BT9-095「ガイアフォースZERO」(赤オプション・確定165枚目)を追加。【メイン】DP13000以下の相手デジモン1体消滅。security=相手デジモン1体消滅。実機でフリップ未発火と報告された3枚(ST1-16/EX12-073/BT9-095)のうちBT9-095のみEDB未登録だったため追加。【手動】使用コスト-2(X抗体進化元条件)/その後グレイモン名称デジモンでアタック=opが無く未対応。",
     "_lm_scramble": "LM-027〜032「○○・スクランブル」6色（赤/青/黄/緑/黒/紫）を追加（確定166〜171枚目）。ユーザ実機報告「メインの進化コスト-3で進化が機能しない」に対応。EDB未登録だったため追加＋evolve opを拡張（costReduction指定時は固定costでなくgetEvoCostでbase→targetの正規進化コストを算出し軽減、進化ルールcanEvolveOnto準拠の組合せのみ対象。未指定は従来固定cost＝ST14-02不変）。security=自分トラッシュから同色DP2000以下を無料登場(play from:trash free)はFIX#3のフリップ経路で守備側視点解決される。【手動】ディレイ内容(デッキ戻し＋条件付き無料登場)・security自己手札戻しは未対応で通知。",
-    "_lastUpdated": "2026-06-27",
+    "_lastUpdated": "2026-06-28",
     "_batchHistory": [
       {
         "batch": 37,
@@ -154,6 +154,29 @@
           "BT2-078"
         ],
         "note": "inherited + limit + cost:destroy_own(other:true) + activate_self"
+      },
+      {
+        "batch": 52,
+        "cardsAdded": [
+          "P-060",
+          "P-061"
+        ],
+        "note": "inherited + limit + exists nameContains(テイマー名) + memory/draw"
+      },
+      {
+        "batch": 53,
+        "cardsAdded": [
+          "BT5-025"
+        ],
+        "note": "effects on_evolve + trash_source from:bottom count:2 (ST2-09 同型)"
+      },
+      {
+        "batch": 54,
+        "cardsAdded": [
+          "BT5-074",
+          "ST16-09"
+        ],
+        "note": "effects on_destroy/on_play + play from + costMod:free 系 2枚"
       }
     ]
   },
@@ -9944,6 +9967,144 @@
         "actions": [
           {
             "op": "activate_self"
+          }
+        ]
+      }
+    ]
+  },
+  "P-060": {
+    "_name": "アンゴラモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch52) Pattern: 既存BT6-011と同系統 (inherited + limit + exists nameContains)。「アタック時ターン1回 月夜野瑠璃居れば メモリー+1」",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "nameContains": [
+                "月夜野瑠璃"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "memory",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "P-061": {
+    "_name": "ジェリーモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch52) Pattern: P-060と同型 (action差: memory→draw)。「アタック時ターン1回 東御手洗清司郎居れば 1ドロー」",
+    "inherited": [
+      {
+        "kind": "triggered",
+        "trigger": "on_attack",
+        "limit": "once_per_turn",
+        "condition": {
+          "exists": {
+            "side": "my",
+            "zone": "battle",
+            "type": "テイマー",
+            "filter": {
+              "nameContains": [
+                "東御手洗清司郎"
+              ]
+            }
+          }
+        },
+        "actions": [
+          {
+            "op": "draw",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-025": {
+    "_name": "ペイルドラモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch53) Pattern: ST2-09と同系統 (effects on_evolve + trash_source from:bottom count:2)。「進化時 相手1体の進化元を下から2枚まで破棄」。「○枚まで」のクランプは trash_source line 18068 (inst.stack.length>0) で自動吸収",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_evolve",
+        "actions": [
+          {
+            "op": "trash_source",
+            "selector": {
+              "side": "opp",
+              "zone": "battle",
+              "type": "デジモン"
+            },
+            "from": "bottom",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  },
+  "BT5-074": {
+    "_name": "トループモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch54) 「消滅時 手札からトループモン1枚をコスト無し登場」。effects on_destroy + play from:hand + filter:nameContains + costMod:free",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_destroy",
+        "actions": [
+          {
+            "op": "play",
+            "from": "hand",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "nameContains": [
+                  "トループモン"
+                ]
+              },
+              "count": 1
+            },
+            "costMod": "free"
+          }
+        ]
+      }
+    ]
+  },
+  "ST16-09": {
+    "_name": "パンプモン",
+    "_verified": true,
+    "_memo": "P2 (Opus・batch54) 「登場時 トラッシュから紫Lv.3デジモン1枚をコスト無し登場」。effects on_play + play from:trash + filter:{colorAny,lvIs} + costMod:free",
+    "effects": [
+      {
+        "kind": "triggered",
+        "trigger": "on_play",
+        "actions": [
+          {
+            "op": "play",
+            "from": "trash",
+            "selector": {
+              "type": "デジモン",
+              "filter": {
+                "colorAny": [
+                  "紫"
+                ],
+                "lvIs": 3
+              },
+              "count": 1
+            },
+            "costMod": "free"
           }
         ]
       }
